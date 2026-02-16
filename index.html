@@ -9,7 +9,6 @@
 <link rel="canonical" href="https://motooka-suisougaku.github.io/suisougaku-Home-page/">
 
 <meta name="description" content="福岡市立元岡中学校吹奏楽部の公式ホームページ。定期演奏会2026の開催情報、プログラム、アクセス、部活動紹介を掲載しています。">
-<!-- OGP -->
 <meta property="og:title" content="福岡市立元岡中学校吹奏楽部 定期演奏会 2026">
 <meta property="og:description" content="福岡市立元岡中学校吹奏楽部の公式ホームページ。定期演奏会2026の開催情報を掲載しています。">
 <meta property="og:image" content="https://raw.githubusercontent.com/motooka-suisougaku/suisougaku-Home-page/main/competition.jpg">
@@ -1099,7 +1098,7 @@ footer {
 <section class="hero">
   <div class="hero-content">
     <div class="logo-badge">
-      <img src="https://raw.githubusercontent.com/motooka-suisougaku/suisougaku-Home-page/main/school_logo.png">
+      <img src="https://raw.githubusercontent.com/motooka-suisougaku/suisougaku-Home-page/main/school_logo.png" alt="元岡中学校 校章">
     </div>
     <p class="hero-subtitle">Annual Concert 2026</p>
     <h1 class="hero-title">福岡市立元岡中学校吹奏楽部 定期演奏会 2026</h1>
@@ -1260,7 +1259,7 @@ footer {
 
       <div class="map-frame">
         <iframe
-          src="https://maps.google.com/maps?q=33.585778281843574,130.25218074969192&hl=ja&z=18&output=embed"
+          src="https://www.google.com/maps?q=33.585778281843574,130.25218074969192&z=17&output=embed"
           loading="lazy"
           allowfullscreen>
         </iframe>
@@ -1399,7 +1398,6 @@ function closeMenu() {
   navToggle.classList.remove('active');
 }
 
-// Close menu when clicking outside
 document.addEventListener('click', function(event) {
   const nav = document.querySelector('.nav');
   const navLinks = document.getElementById('navLinks');
@@ -1411,7 +1409,6 @@ document.addEventListener('click', function(event) {
   }
 });
 
-// Parallax scrolling effect
 let ticking = false;
 window.addEventListener('scroll', function() {
   if (!ticking) {
@@ -1420,7 +1417,6 @@ window.addEventListener('scroll', function() {
       const heroBg = document.querySelector('.hero-bg');
        
       if (heroBg) {
-        // Subtle parallax - background moves slowly upward
         heroBg.style.transform = `translateY(${scrolled * -0.3}px)`;
       }
        
@@ -1430,7 +1426,6 @@ window.addEventListener('scroll', function() {
   }
 });
 
-// Scroll-triggered section animations
 const observerOptions = {
   threshold: 0.15,
   rootMargin: '0px 0px -100px 0px'
@@ -1445,7 +1440,6 @@ const observer = new IntersectionObserver(function(entries) {
   });
 }, observerOptions);
 
-// Observe all sections except hero
 document.addEventListener('DOMContentLoaded', function() {
   const sections = document.querySelectorAll('section:not(.hero)');
   sections.forEach(section => {
