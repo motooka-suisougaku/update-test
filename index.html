@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🎺 スイコネ — 吹奏楽コネクトシステム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --gold: #C9922A;
+  --gold-light: #F0C060;
+  --gold-pale: #FFF3D0;
+  --brown: #3E1F00;
+  --brown-mid: #6B3A1F;
+  --brown-light: #A0622A;
+  --cream: #FDF6E3;
+  --ivory: #FFFDF5;
+  --accent-teal: #1A6B6B;
+  --accent-red: #8B1A1A;
+  --text-dark: #2A1500;
+  --text-mid: #5C3A1E;
+  --text-light: #9A7050;
+  --shadow: rgba(62,31,0,0.18);
+  --shadow-strong: rgba(62,31,0,0.35);
+  --metronome-on: #C9922A;
+  --metronome-off: transparent;
+  --flash-color: rgba(201, 146, 42, 0.0);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--cream);
+  color: var(--text-dark);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== BG FLASH ===== */
+#bg-flash {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: var(--flash-color);
+  transition: background 0.05s;
+}
+
+/* ===== HEADER ===== */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--brown);
+  padding: 0 16px;
+  display: flex; align-items: center; gap: 12px;
+  height: 56px;
+  box-shadow: 0 3px 16px var(--shadow-strong);
+}
+
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: var(--gold-light);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.logo span { color: #fff; font-size: 14px; letter-spacing: 1px; display: block; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; line-height: 1; }
+
+.header-pitch {
+  flex: 1;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  padding: 6px 12px;
+  display: flex; flex-direction: column; gap: 1px;
+  min-width: 0;
+}
+.header-pitch .pitch-label { font-size: 10px; color: var(--gold-light); font-weight: 700; letter-spacing: 1px; }
+.header-pitch .pitch-value { font-size: 14px; color: #fff; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.header-name-badge {
+  background: var(--gold);
+  color: var(--brown);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* ===== LAYOUT ===== */
+.app-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 0;
+  min-height: calc(100vh - 56px);
+  position: relative; z-index: 1;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  background: linear-gradient(175deg, var(--brown) 0%, var(--brown-mid) 100%);
+  display: flex; flex-direction: column; gap: 0;
+  border-right: 3px solid var(--gold);
+  overflow-y: auto;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+}
+
+.sidebar-section {
+  padding: 16px;
+  border-bottom: 1px solid rgba(201,146,42,0.25);
+}
+
+.sidebar-section-title {
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--gold-light);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* ===== METRONOME ===== */
+.metronome-display {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+
+.metro-circle-wrap {
+  position: relative;
+  width: 80px; height: 80px;
+}
+
+.metro-ring {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 3px solid rgba(201,146,42,0.3);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.05s, box-shadow 0.05s;
+  background: rgba(201,146,42,0.05);
+}
+
+.metro-ring.beat {
+  background: var(--gold);
+  box-shadow: 0 0 24px var(--gold), 0 0 48px rgba(201,146,42,0.5);
+  border-color: var(--gold-light);
+}
+
+.metro-bpm-display {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: #fff;
+  line-height: 1;
+}
+
+.metro-bpm-unit { font-size: 11px; color: var(--gold-light); font-weight: 700; text-align: center; margin-top: -4px; }
+
+.metro-controls {
+  width: 100%;
+}
+
+.bpm-slider-row {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.bpm-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: rgba(201,146,42,0.15);
+  color: var(--gold-light);
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.bpm-btn:active { background: var(--gold); color: var(--brown); transform: scale(0.92); }
+
+input[type="range"].bpm-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  background: rgba(201,146,42,0.3);
+  border-radius: 4px;
+  outline: none;
+}
+input[type="range"].bpm-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--gold);
+  cursor: pointer;
+}
+
+.metro-start-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.18s;
+  margin-top: 10px;
+  letter-spacing: 1px;
+}
+.metro-start-btn.stopped {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  color: var(--brown);
+  box-shadow: 0 4px 16px rgba(201,146,42,0.4);
+}
+.metro-start-btn.running {
+  background: var(--accent-red);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(139,26,26,0.4);
+}
+.metro-start-btn:active { transform: scale(0.96); }
+
+/* ===== STAMPS ===== */
+.stamp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.stamp-btn {
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(201,146,42,0.35);
+  background: rgba(255,255,255,0.07);
+  color: #fff;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  line-height: 1.3;
+  transition: all 0.15s;
+  word-break: break-all;
+}
+.stamp-btn:active {
+  background: var(--gold);
+  color: var(--brown);
+  transform: scale(0.93);
+}
+
+/* ===== RANKING ===== */
+.ranking-list {
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.ranking-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(201,146,42,0.2);
+}
+
+.rank-badge {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  min-width: 24px;
+  text-align: center;
+}
+.rank-badge.rank-1 { color: #FFD700; }
+.rank-badge.rank-2 { color: #C0C0C0; }
+.rank-badge.rank-3 { color: #CD7F32; }
+.rank-badge.rank-other { color: var(--text-light); font-size: 14px; }
+
+.rank-info { flex: 1; min-width: 0; }
+.rank-part { font-size: 12px; font-weight: 700; color: #fff; }
+.rank-time { font-size: 10px; color: var(--gold-light); }
+
+.rank-empty { text-align: center; color: rgba(255,255,255,0.35); font-size: 12px; padding: 8px 0; }
+
+.ready-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #1A6B6B 0%, #0D4040 100%);
+  color: #fff;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  margin-top: 10px;
+  box-shadow: 0 4px 16px rgba(26,107,107,0.4);
+  transition: all 0.18s;
+  letter-spacing: 1px;
+}
+.ready-btn:active { transform: scale(0.95); }
+
+.reset-btn {
+  width: 100%;
+  padding: 7px;
+  border-radius: 8px;
+  border: 1px solid rgba(201,146,42,0.3);
+  background: transparent;
+  color: var(--gold-light);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: all 0.15s;
+}
+.reset-btn:active { background: rgba(201,146,42,0.15); }
+
+/* ===== MAIN CONTENT ===== */
+.main-content {
+  display: flex; flex-direction: column;
+  background: var(--ivory);
+  overflow: hidden;
+}
+
+/* ===== BULLETIN ===== */
+.bulletin-board {
+  background: linear-gradient(135deg, var(--brown) 0%, var(--brown-mid) 100%);
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--gold);
+}
+
+.bulletin-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.bulletin-icon { font-size: 18px; }
+.bulletin-title { font-size: 11px; font-weight: 900; color: var(--gold-light); letter-spacing: 2px; }
+.bulletin-admin-toggle {
+  margin-left: auto;
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.bulletin-content {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+
+.bulletin-tag {
+  background: rgba(201,146,42,0.2);
+  border: 1.5px solid var(--gold);
+  border-radius: 8px;
+  padding: 6px 12px;
+  display: flex; flex-direction: column;
+}
+.bulletin-tag .tag-label { font-size: 9px; font-weight: 700; color: var(--gold-light); letter-spacing: 1px; }
+.bulletin-tag .tag-value { font-size: 18px; font-weight: 900; color: #fff; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; }
+
+.bulletin-note {
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(201,146,42,0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 160px;
+  display: flex; align-items: center;
+}
+
+.bulletin-edit-form {
+  display: none; flex-direction: column; gap: 8px; margin-top: 10px;
+}
+.bulletin-edit-form.visible { display: flex; }
+.bulletin-edit-form input, .bulletin-edit-form textarea {
+  border: 1.5px solid var(--gold);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  padding: 7px 10px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  width: 100%;
+}
+.bulletin-edit-form input::placeholder, .bulletin-edit-form textarea::placeholder { color: rgba(255,255,255,0.35); }
+.bulletin-edit-form button {
+  background: var(--gold);
+  color: var(--brown);
+  border: none;
+  border-radius: 6px;
+  padding: 8px;
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ===== CHAT ===== */
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  scroll-behavior: smooth;
+}
+
+.msg-bubble {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+  animation: slideIn 0.25s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.msg-bubble.own { align-self: flex-end; align-items: flex-end; }
+.msg-bubble.other { align-self: flex-start; align-items: flex-start; }
+
+.msg-meta {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 4px;
+}
+.msg-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 900;
+  flex-shrink: 0;
+}
+.msg-name { font-size: 11px; font-weight: 700; color: var(--text-mid); }
+.msg-time { font-size: 10px; color: var(--text-light); }
+
+.msg-body {
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+.msg-bubble.own .msg-body {
+  background: linear-gradient(135deg, var(--brown-mid) 0%, var(--brown) 100%);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.msg-bubble.other .msg-body {
+  background: #fff;
+  color: var(--text-dark);
+  border: 1.5px solid rgba(62,31,0,0.1);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.msg-bubble.system-msg { align-self: center; max-width: 90%; }
+.msg-bubble.system-msg .msg-body {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--brown-light) 100%);
+  color: #fff;
+  border-radius: 16px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 16px;
+  box-shadow: 0 4px 16px rgba(201,146,42,0.35);
+}
+
+/* ===== INPUT AREA ===== */
+.input-area {
+  border-top: 2px solid rgba(62,31,0,0.1);
+  padding: 12px 16px;
+  background: #fff;
+}
+
+.input-row {
+  display: flex; gap: 10px; align-items: flex-end;
+}
+
+.msg-input {
+  flex: 1;
+  border: 2px solid rgba(62,31,0,0.15);
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  background: var(--cream);
+  color: var(--text-dark);
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+  max-height: 120px;
+  overflow-y: auto;
+  min-height: 48px;
+}
+.msg-input:focus { border-color: var(--gold); }
+
+.send-btn {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--brown-light) 100%);
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(201,146,42,0.4);
+  transition: all 0.18s;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.send-btn:active { transform: scale(0.9); }
+
+/* ===== NAME MODAL ===== */
+#name-modal {
+  position: fixed; inset: 0;
+  background: rgba(62,31,0,0.75);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999;
+}
+
+.name-card {
+  background: var(--ivory);
+  border-radius: 24px;
+  padding: 36px;
+  max-width: 360px;
+  width: 90%;
+  box-shadow: 0 24px 64px rgba(62,31,0,0.5);
+  text-align: center;
+  border: 2px solid var(--gold);
+}
+
+.name-card-emoji { font-size: 48px; margin-bottom: 8px; }
+.name-card h2 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--brown); letter-spacing: 2px; margin-bottom: 4px; }
+.name-card p { font-size: 13px; color: var(--text-light); margin-bottom: 20px; }
+
+.name-input-group { display: flex; flex-direction: column; gap: 10px; }
+
+.name-input {
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 16px;
+  background: var(--cream);
+  outline: none;
+  color: var(--text-dark);
+  text-align: center;
+}
+
+.part-select {
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  background: var(--cream);
+  outline: none;
+  color: var(--text-dark);
+  cursor: pointer;
+}
+
+.join-btn {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--brown-light) 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(201,146,42,0.4);
+  transition: all 0.18s;
+  letter-spacing: 1px;
+}
+.join-btn:active { transform: scale(0.96); }
+
+/* ===== PART COLORS ===== */
+.part-color-trumpet { background: #C9922A; color: #fff; }
+.part-color-saxophone { background: #8B5E3C; color: #fff; }
+.part-color-clarinet { background: #1A6B6B; color: #fff; }
+.part-color-flute { background: #6B8B3C; color: #fff; }
+.part-color-trombone { background: #8B1A1A; color: #fff; }
+.part-color-horn { background: #6B6B1A; color: #fff; }
+.part-color-tuba { background: #3A1A6B; color: #fff; }
+.part-color-percussion { background: #3C3C3C; color: #fff; }
+.part-color-oboe { background: #5C8B1A; color: #fff; }
+.part-color-bassoon { background: #6B3A1F; color: #fff; }
+.part-color-euphonium { background: #1A4A6B; color: #fff; }
+.part-color-default { background: var(--brown); color: #fff; }
+
+/* ===== MOBILE ===== */
+@media (max-width: 680px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto 1fr auto;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    max-height: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .sidebar-section { border-bottom: none; border-right: 1px solid rgba(201,146,42,0.2); }
+  .sidebar-section:last-child { border-right: none; }
+
+  .metronome-display { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+
+  .main-content { height: 60vh; min-height: 320px; }
+
+  .msg-bubble { max-width: 92%; }
+
+  .sidebar-section { flex: 1; min-width: 160px; }
+}
+
+/* ===== SCROLLBAR ===== */
+.chat-area::-webkit-scrollbar, .sidebar::-webkit-scrollbar { width: 5px; }
+.chat-area::-webkit-scrollbar-track { background: transparent; }
+.chat-area::-webkit-scrollbar-thumb { background: rgba(201,146,42,0.35); border-radius: 10px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+/* ===== NOTIFICATIONS ===== */
+.toast {
+  position: fixed;
+  bottom: 80px; right: 16px;
+  background: var(--brown);
+  color: #fff;
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  z-index: 500;
+  animation: toastIn 0.3s ease-out;
+  box-shadow: 0 8px 24px var(--shadow-strong);
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== BEAT PULSE ANIMATION ===== */
+@keyframes beatPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.metro-ring.beat { animation: beatPulse 0.12s ease-out; }
+
+</style>
+</head>
+<body>
+
+<div id="bg-flash"></div>
+
+<!-- ===== NAME MODAL ===== -->
+<div id="name-modal">
+  <div class="name-card">
+    <div class="name-card-emoji">🎺</div>
+    <h2>SUIKONE</h2>
+    <p>吹奏楽コネクトシステムへようこそ！<br>名前とパートを入力してください</p>
+    <div class="name-input-group">
+      <input class="name-input" id="name-input" placeholder="例：田中 花音" maxlength="20">
+      <select class="part-select" id="part-select">
+        <option value="">パートを選択</option>
+        <option value="フルート">🎵 フルート</option>
+        <option value="オーボエ">🎵 オーボエ</option>
+        <option value="クラリネット">🎵 クラリネット</option>
+        <option value="ファゴット">🎵 ファゴット</option>
+        <option value="サックス">🎷 サックス</option>
+        <option value="ホルン">🎺 ホルン</option>
+        <option value="トランペット">🎺 トランペット</option>
+        <option value="トロンボーン">🎺 トロンボーン</option>
+        <option value="ユーフォ">🎺 ユーフォニアム</option>
+        <option value="チューバ">🎺 チューバ</option>
+        <option value="打楽器">🥁 打楽器</option>
+        <option value="コンバス">🎸 コントラバス</option>
+        <option value="指揮者">🎼 指揮者</option>
+        <option value="顧問">📋 顧問</option>
+      </select>
+      <button class="join-btn" onclick="joinChat()">🎶 入室する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HEADER ===== -->
+<header>
+  <div class="logo">SUIKONE<span>吹奏楽コネクト</span></div>
+  <div class="header-pitch" id="header-pitch-display">
+    <span class="pitch-label">📌 TODAY'S INFO</span>
+    <span class="pitch-value" id="header-pitch-text">管理者が設定中...</span>
+  </div>
+  <div class="header-name-badge" id="user-badge" onclick="openBulletinAdmin()">👤 ゲスト</div>
+</header>
+
+<!-- ===== APP LAYOUT ===== -->
+<div class="app-layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+
+    <!-- METRONOME -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">🎵 メトロノーム</div>
+      <div class="metronome-display">
+        <div class="metro-circle-wrap">
+          <div class="metro-ring" id="metro-ring">
+            <div style="text-align:center">
+              <div class="metro-bpm-display" id="bpm-display">120</div>
+              <div class="metro-bpm-unit">BPM</div>
+            </div>
+          </div>
+        </div>
+        <div class="metro-controls" style="width:100%">
+          <div class="bpm-slider-row">
+            <button class="bpm-btn" onclick="changeBpm(-5)">−</button>
+            <input type="range" class="bpm-slider" id="bpm-slider" min="40" max="240" value="120" oninput="updateBpm(this.value)">
+            <button class="bpm-btn" onclick="changeBpm(+5)">＋</button>
+          </div>
+          <button class="metro-start-btn stopped" id="metro-btn" onclick="toggleMetronome()">▶ スタート</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAMPS -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">💬 スタンプ＆定型文</div>
+      <div class="stamp-grid" id="stamp-grid">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- RANKING -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">🏆 準備完了ランキング</div>
+      <div class="ranking-list" id="ranking-list">
+        <div class="rank-empty">まだ誰も準備完了していません</div>
+      </div>
+      <button class="ready-btn" onclick="markReady()">✅ 準備完了！</button>
+      <button class="reset-btn" id="reset-rank-btn" onclick="resetRanking()">🔄 ランキングリセット（管理者）</button>
+    </div>
+
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <div class="main-content">
+
+    <!-- BULLETIN -->
+    <div class="bulletin-board">
+      <div class="bulletin-header">
+        <span class="bulletin-icon">📌</span>
+        <span class="bulletin-title">本日の掲示板</span>
+        <span class="bulletin-admin-toggle" onclick="toggleBulletinEdit()">管理者編集</span>
+      </div>
+      <div class="bulletin-content">
+        <div class="bulletin-tag">
+          <span class="tag-label">PITCH</span>
+          <span class="tag-value" id="bulletin-pitch">A=442</span>
+        </div>
+        <div class="bulletin-tag">
+          <span class="tag-label">TEMP</span>
+          <span class="tag-value" id="bulletin-temp">--°C</span>
+        </div>
+        <div class="bulletin-note" id="bulletin-note">連絡事項はここに表示されます</div>
+      </div>
+      <div class="bulletin-edit-form" id="bulletin-edit-form">
+        <input type="text" id="edit-pitch" placeholder="ピッチ（例: A=442Hz）" maxlength="20">
+        <input type="text" id="edit-temp" placeholder="気温（例: 23°C）" maxlength="10">
+        <textarea id="edit-note" placeholder="本日の連絡事項" rows="2" maxlength="100"></textarea>
+        <button onclick="saveBulletin()">💾 保存する</button>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-area" id="chat-area">
+      <div class="msg-bubble system-msg">
+        <div class="msg-body">🎺 スイコネへようこそ！今日も元気よく練習しましょう！</div>
+      </div>
+    </div>
+
+    <!-- INPUT -->
+    <div class="input-area">
+      <div class="input-row">
+        <textarea class="msg-input" id="msg-input" placeholder="メッセージを入力..." rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== FIREBASE ===== -->
+<script type="module">
+// ============================================================
+// !! ここにFirebase設定を入力してください !!
+// ============================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, doc, setDoc, getDoc, getDocs, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  // ここにあなたのFirebase設定を貼り付けてください
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+let app, db;
+try {
+  app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  console.log("Firebase initialized ✓");
+} catch(e) {
+  console.warn("Firebase not configured, using demo mode");
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let currentUser = null;
+let metronomeInterval = null;
+let bpm = 120;
+let isRunning = false;
+let audioCtx = null;
+let beatCount = 0;
+
+// PART COLOR MAP
+const partColors = {
+  'フルート': 'part-color-flute',
+  'オーボエ': 'part-color-oboe',
+  'クラリネット': 'part-color-clarinet',
+  'ファゴット': 'part-color-bassoon',
+  'サックス': 'part-color-saxophone',
+  'ホルン': 'part-color-horn',
+  'トランペット': 'part-color-trumpet',
+  'トロンボーン': 'part-color-trombone',
+  'ユーフォ': 'part-color-euphonium',
+  'チューバ': 'part-color-tuba',
+  '打楽器': 'part-color-percussion',
+  'コンバス': 'part-color-percussion',
+  '指揮者': 'part-color-default',
+  '顧問': 'part-color-default',
+};
+
+function getPartColor(part) {
+  return partColors[part] || 'part-color-default';
+}
+
+function getAvatar(name, part) {
+  const first = name ? name.charAt(0) : '？';
+  return first;
+}
+
+// ============================================================
+// JOIN
+// ============================================================
+window.joinChat = function() {
+  const name = document.getElementById('name-input').value.trim();
+  const part = document.getElementById('part-select').value;
+  if (!name) { showToast('名前を入力してください！'); return; }
+  if (!part) { showToast('パートを選択してください！'); return; }
+  currentUser = { name, part };
+  document.getElementById('name-modal').style.display = 'none';
+  document.getElementById('user-badge').textContent = `${part} ${name}`;
+
+  // Send join message
+  sendSystemMsg(`🎺 ${part}の${name}さんが入室しました！`);
+
+  // Start listening
+  listenMessages();
+  listenRanking();
+  listenBulletin();
+};
+
+// ============================================================
+// MESSAGES
+// ============================================================
+function listenMessages() {
+  if (!db) { loadDemoMessages(); return; }
+  const q = query(collection(db, 'messages'), orderBy('timestamp', 'asc'), limit(200));
+  onSnapshot(q, (snapshot) => {
+    const chatArea = document.getElementById('chat-area');
+    chatArea.innerHTML = '';
+    snapshot.forEach(docSnap => {
+      renderMessage(docSnap.data());
+    });
+    scrollToBottom();
+  });
+}
+
+function renderMessage(data) {
+  const chatArea = document.getElementById('chat-area');
+  const isOwn = currentUser && data.name === currentUser.name && data.part === currentUser.part;
+  const isSystem = data.type === 'system';
+
+  const bubble = document.createElement('div');
+  bubble.className = `msg-bubble ${isSystem ? 'system-msg' : isOwn ? 'own' : 'other'}`;
+
+  if (isSystem) {
+    bubble.innerHTML = `<div class="msg-body">${escapeHtml(data.text)}</div>`;
+  } else {
+    const colorClass = getPartColor(data.part);
+    const timeStr = data.timestamp ? formatTime(data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp)) : '';
+    if (isOwn) {
+      bubble.innerHTML = `
+        <div class="msg-meta" style="flex-direction:row-reverse">
+          <div class="msg-avatar ${colorClass}">${getAvatar(data.name, data.part)}</div>
+          <span class="msg-name">${escapeHtml(data.part)} ${escapeHtml(data.name)}</span>
+          <span class="msg-time">${timeStr}</span>
+        </div>
+        <div class="msg-body">${escapeHtml(data.text)}</div>`;
+    } else {
+      bubble.innerHTML = `
+        <div class="msg-meta">
+          <div class="msg-avatar ${colorClass}">${getAvatar(data.name, data.part)}</div>
+          <span class="msg-name">${escapeHtml(data.part)} ${escapeHtml(data.name)}</span>
+          <span class="msg-time">${timeStr}</span>
+        </div>
+        <div class="msg-body">${escapeHtml(data.text)}</div>`;
+    }
+  }
+  chatArea.appendChild(bubble);
+}
+
+window.sendMessage = async function(text) {
+  if (!currentUser) { showToast('先に名前を入力してください'); return; }
+  const input = document.getElementById('msg-input');
+  const msgText = text || input.value.trim();
+  if (!msgText) return;
+
+  const msgData = {
+    name: currentUser.name,
+    part: currentUser.part,
+    text: msgText,
+    type: 'chat',
+    timestamp: db ? serverTimestamp() : Date.now()
+  };
+
+  if (!text) {
+    input.value = '';
+    input.style.height = 'auto';
+  }
+
+  if (db) {
+    await addDoc(collection(db, 'messages'), msgData);
+  } else {
+    renderMessage({ ...msgData, timestamp: { toDate: () => new Date() } });
+    scrollToBottom();
+  }
+};
+
+async function sendSystemMsg(text) {
+  const msgData = { text, type: 'system', timestamp: db ? serverTimestamp() : Date.now() };
+  if (db) {
+    await addDoc(collection(db, 'messages'), msgData);
+  } else {
+    renderMessage({ ...msgData, timestamp: { toDate: () => new Date() } });
+    scrollToBottom();
+  }
+}
+
+window.handleKey = function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+};
+
+window.autoResize = function(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+};
+
+function scrollToBottom() {
+  const ca = document.getElementById('chat-area');
+  setTimeout(() => ca.scrollTop = ca.scrollHeight, 50);
+}
+
+function loadDemoMessages() {
+  const demo = [
+    { name: 'システム', part: '', text: '🎺 スイコネへようこそ！今日も元気よく練習しましょう！', type: 'system', timestamp: { toDate: () => new Date(Date.now()-60000) } },
+    { name: '田中 花音', part: 'クラリネット', text: 'おはようございます！今日も頑張りましょう！', type: 'chat', timestamp: { toDate: () => new Date(Date.now()-30000) } },
+    { name: '山本 蒼', part: 'トランペット', text: 'チューニング終わりました〜', type: 'chat', timestamp: { toDate: () => new Date(Date.now()-10000) } },
+  ];
+  const chatArea = document.getElementById('chat-area');
+  chatArea.innerHTML = '';
+  demo.forEach(d => renderMessage(d));
+  scrollToBottom();
+}
+
+// ============================================================
+// RANKING
+// ============================================================
+let rankingData = [];
+
+function listenRanking() {
+  if (!db) return;
+  const today = getTodayKey();
+  const q = query(collection(db, `ranking_${today}`), orderBy('timestamp', 'asc'));
+  onSnapshot(q, (snapshot) => {
+    rankingData = [];
+    snapshot.forEach(d => rankingData.push(d.data()));
+    renderRanking();
+  });
+}
+
+window.markReady = async function() {
+  if (!currentUser) { showToast('先に入室してください'); return; }
+  const part = currentUser.part;
+  const name = currentUser.name;
+  const today = getTodayKey();
+
+  // Check if already marked
+  const alreadyIn = rankingData.find(r => r.part === part && r.name === name);
+  if (alreadyIn) { showToast('すでに準備完了済みです！'); return; }
+
+  const entry = { part, name, timestamp: db ? serverTimestamp() : Date.now() };
+
+  if (db) {
+    await setDoc(doc(db, `ranking_${today}`, `${part}_${name}`), entry);
+  } else {
+    rankingData.push({ ...entry, timestamp: { toDate: () => new Date() } });
+    renderRanking();
+  }
+
+  sendSystemMsg(`🎯 ${part}の${name}さんが準備完了！（${rankingData.length + 1}番目）`);
+};
+
+window.resetRanking = async function() {
+  if (!confirm('ランキングをリセットしますか？')) return;
+  const today = getTodayKey();
+  if (db) {
+    const snap = await getDocs(collection(db, `ranking_${today}`));
+    for (const d of snap.docs) await deleteDoc(d.ref);
+  } else {
+    rankingData = [];
+    renderRanking();
+  }
+  sendSystemMsg('🔄 準備完了ランキングがリセットされました！');
+};
+
+function renderRanking() {
+  const list = document.getElementById('ranking-list');
+  if (!rankingData.length) {
+    list.innerHTML = '<div class="rank-empty">まだ誰も準備完了していません</div>';
+    return;
+  }
+  list.innerHTML = rankingData.map((r, i) => {
+    const rank = i + 1;
+    const medals = ['🥇','🥈','🥉'];
+    const badgeClass = rank <= 3 ? `rank-${rank}` : 'rank-other';
+    const badge = rank <= 3 ? medals[rank-1] : `${rank}位`;
+    const time = r.timestamp && r.timestamp.toDate ? formatTime(r.timestamp.toDate()) : '';
+    const colorClass = getPartColor(r.part);
+    return `<div class="ranking-item">
+      <div class="rank-badge ${badgeClass}">${badge}</div>
+      <div class="msg-avatar ${colorClass}" style="width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0">${r.name.charAt(0)}</div>
+      <div class="rank-info">
+        <div class="rank-part">${escapeHtml(r.part)} ${escapeHtml(r.name)}</div>
+        <div class="rank-time">${time}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getTodayKey() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+}
+
+// ============================================================
+// BULLETIN
+// ============================================================
+function listenBulletin() {
+  if (!db) return;
+  onSnapshot(doc(db, 'bulletin', 'today'), (snap) => {
+    if (snap.exists()) updateBulletinUI(snap.data());
+  });
+}
+
+function updateBulletinUI(data) {
+  if (data.pitch) {
+    document.getElementById('bulletin-pitch').textContent = data.pitch;
+    document.getElementById('header-pitch-text').textContent = `ピッチ: ${data.pitch}`;
+  }
+  if (data.temp) document.getElementById('bulletin-temp').textContent = data.temp;
+  if (data.note) document.getElementById('bulletin-note').textContent = data.note;
+}
+
+window.toggleBulletinEdit = function() {
+  const form = document.getElementById('bulletin-edit-form');
+  form.classList.toggle('visible');
+};
+
+window.openBulletinAdmin = function() {
+  toggleBulletinEdit();
+};
+
+window.saveBulletin = async function() {
+  const pitch = document.getElementById('edit-pitch').value.trim();
+  const temp = document.getElementById('edit-temp').value.trim();
+  const note = document.getElementById('edit-note').value.trim();
+  const data = {};
+  if (pitch) data.pitch = pitch;
+  if (temp) data.temp = temp;
+  if (note) data.note = note;
+
+  if (db) {
+    await setDoc(doc(db, 'bulletin', 'today'), data, { merge: true });
+  } else {
+    updateBulletinUI(data);
+  }
+
+  document.getElementById('bulletin-edit-form').classList.remove('visible');
+  showToast('📌 掲示板を更新しました！');
+};
+
+// ============================================================
+// METRONOME
+// ============================================================
+window.updateBpm = function(val) {
+  bpm = parseInt(val);
+  document.getElementById('bpm-display').textContent = bpm;
+  document.getElementById('bpm-slider').value = bpm;
+  if (isRunning) { stopMetronome(); startMetronome(); }
+};
+
+window.changeBpm = function(delta) {
+  const newBpm = Math.max(40, Math.min(240, bpm + delta));
+  updateBpm(newBpm);
+};
+
+window.toggleMetronome = function() {
+  if (isRunning) stopMetronome();
+  else startMetronome();
+};
+
+function startMetronome() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  isRunning = true;
+  beatCount = 0;
+  document.getElementById('metro-btn').textContent = '⏹ ストップ';
+  document.getElementById('metro-btn').className = 'metro-start-btn running';
+  scheduleBeat();
+}
+
+function stopMetronome() {
+  isRunning = false;
+  clearTimeout(metronomeInterval);
+  document.getElementById('metro-btn').textContent = '▶ スタート';
+  document.getElementById('metro-btn').className = 'metro-start-btn stopped';
+  document.getElementById('metro-ring').classList.remove('beat');
+  document.getElementById('bg-flash').style.background = 'rgba(201,146,42,0.0)';
+}
+
+function scheduleBeat() {
+  if (!isRunning) return;
+  const now = audioCtx.currentTime;
+  const interval = 60 / bpm;
+
+  // SOUND
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  const isAccent = beatCount % 4 === 0;
+  osc.frequency.value = isAccent ? 1200 : 900;
+  gain.gain.setValueAtTime(isAccent ? 0.5 : 0.25, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+  osc.start(now);
+  osc.stop(now + 0.08);
+
+  // VISUAL
+  const ring = document.getElementById('metro-ring');
+  const bgFlash = document.getElementById('bg-flash');
+  ring.classList.add('beat');
+  bgFlash.style.background = isAccent ? 'rgba(201,146,42,0.12)' : 'rgba(201,146,42,0.06)';
+  setTimeout(() => {
+    ring.classList.remove('beat');
+    bgFlash.style.background = 'rgba(201,146,42,0.0)';
+  }, 120);
+
+  beatCount++;
+  metronomeInterval = setTimeout(scheduleBeat, interval * 1000);
+}
+
+// ============================================================
+// STAMPS
+// ============================================================
+const stamps = [
+  { emoji: '✅', text: '了解！' },
+  { emoji: '🎺', text: 'チューニング中' },
+  { emoji: '⏰', text: '10分から合奏です' },
+  { emoji: '🔇', text: '静かにして！' },
+  { emoji: '🎵', text: 'もう一回！' },
+  { emoji: '👏', text: 'よくできました！' },
+  { emoji: '💨', text: 'ブレスから！' },
+  { emoji: '🎼', text: '○番から合わせます' },
+  { emoji: '🚀', text: '準備OK！' },
+  { emoji: '🙏', text: 'お疲れ様でした！' },
+  { emoji: '🔥', text: 'もっと元気よく！' },
+  { emoji: '📢', text: '集合してください' },
+];
+
+function initStamps() {
+  const grid = document.getElementById('stamp-grid');
+  stamps.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'stamp-btn';
+    btn.innerHTML = `${s.emoji}<br>${s.text}`;
+    btn.onclick = () => {
+      if (!currentUser) { showToast('先に入室してください'); return; }
+      sendMessage(s.text);
+    };
+    grid.appendChild(btn);
+  });
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatTime(date) {
+  return `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+}
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2800);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+initStamps();
+</script>
+</body>
+</html>
