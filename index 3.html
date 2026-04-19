@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🎺 スイコネ — 吹奏楽コネクトシステム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+
+<style>
+/* =============================================
+   CSS VARIABLES & RESET
+   ============================================= */
+:root {
+  --gold:        #C9922A;
+  --gold-light:  #F0C060;
+  --gold-glow:   rgba(201,146,42,0.35);
+  --brown:       #2A1400;
+  --brown-mid:   #5C2E0A;
+  --brown-light: #8B4A1A;
+  --cream:       #FDF6E3;
+  --ivory:       #FFFDF5;
+  --teal:        #0D5C5C;
+  --teal-light:  #1A8080;
+  --red-dark:    #7A1515;
+  --text-dark:   #2A1500;
+  --text-mid:    #5C3A1E;
+  --text-light:  #9A7050;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Noto Sans JP', sans-serif; background: #100500; color: var(--text-dark); overflow: hidden; }
+
+/* =============================================
+   SPA SCREEN SYSTEM
+   ============================================= */
+.screen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transform: translateY(14px);
+  z-index: 1;
+}
+.screen.active { opacity: 1; pointer-events: all; transform: translateY(0); z-index: 10; }
+.screen.exit   { opacity: 0; transform: translateY(-14px); pointer-events: none; z-index: 5; }
+
+/* =============================================
+   BG FLASH
+   ============================================= */
+#bg-flash { position: fixed; inset: 0; pointer-events: none; z-index: 0; background: transparent; transition: background 0.06s; }
+
+/* =============================================
+   ① START SCREEN
+   ============================================= */
+#screen-start {
+  background: radial-gradient(ellipse at 35% 25%, #3D1D00 0%, #180700 55%, #080300 100%);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.deco-ring {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(201,146,42,0.1);
+  pointer-events: none;
+}
+.deco-ring:nth-child(1) { width: 480px; height: 480px; top: -180px; right: -120px; }
+.deco-ring:nth-child(2) { width: 300px; height: 300px; bottom: -80px; left: -60px; border-color: rgba(201,146,42,0.07); }
+
+.start-card {
+  position: relative;
+  background: linear-gradient(145deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.02) 100%);
+  border: 1.5px solid rgba(201,146,42,0.38);
+  border-radius: 26px;
+  padding: 40px 32px;
+  max-width: 370px; width: 100%;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 28px 72px rgba(0,0,0,0.65), inset 0 1px 0 rgba(201,146,42,0.18);
+  animation: cardIn 0.65s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes cardIn { from { opacity:0; transform:scale(0.93) translateY(22px); } to { opacity:1; transform:scale(1) translateY(0); } }
+
+.start-logo-wrap { text-align: center; margin-bottom: 28px; }
+.start-emblem { font-size: 50px; filter: drop-shadow(0 0 18px rgba(201,146,42,0.5)); }
+.start-logo-text { font-family: 'Bebas Neue', sans-serif; font-size: 40px; color: var(--gold-light); letter-spacing: 4px; text-shadow: 0 0 28px var(--gold-glow); }
+.start-sub { font-size: 11px; color: rgba(240,192,96,0.55); letter-spacing: 3px; margin-top: 3px; }
+
+.start-form { display: flex; flex-direction: column; gap: 12px; }
+.field-label { font-size: 10px; font-weight: 700; color: rgba(240,192,96,0.65); letter-spacing: 2px; margin-bottom: 3px; }
+
+.s-input, .s-select {
+  width: 100%;
+  background: rgba(255,255,255,0.055);
+  border: 1.5px solid rgba(201,146,42,0.32);
+  border-radius: 13px;
+  padding: 13px 16px;
+  font-family: 'Noto Sans JP', sans-serif; font-size: 15px;
+  color: #fff; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.s-input:focus, .s-select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,146,42,0.16); }
+.s-input::placeholder { color: rgba(255,255,255,0.22); }
+.s-select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%23C9922A' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+.s-select option { background: #2A1400; color: #fff; }
+
+.start-error { min-height: 18px; text-align: center; color: #FF8080; font-size: 12px; font-weight: 700; }
+.shake { animation: shake 0.38s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+
+.start-btn {
+  padding: 15px; border-radius: 13px; border: none;
+  background: linear-gradient(135deg, var(--gold) 0%, #E0A828 100%);
+  color: var(--brown); font-family: 'Noto Sans JP', sans-serif;
+  font-size: 15px; font-weight: 900; letter-spacing: 2px;
+  cursor: pointer; box-shadow: 0 7px 24px rgba(201,146,42,0.42);
+  transition: all 0.2s; margin-top: 2px;
+}
+.start-btn:active { transform: scale(0.96); }
+.start-btn:hover  { box-shadow: 0 10px 32px rgba(201,146,42,0.58); }
+
+/* =============================================
+   ② MENU SCREEN
+   ============================================= */
+#screen-menu {
+  background: radial-gradient(ellipse at 65% 10%, #3D1D00 0%, #180700 55%, #080300 100%);
+  align-items: center; justify-content: center; padding: 24px;
+}
+.menu-header-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  padding: 18px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.menu-logo-sm { font-family: 'Bebas Neue', sans-serif; font-size: 21px; color: var(--gold-light); letter-spacing: 3px; }
+.menu-user-chip {
+  background: rgba(201,146,42,0.15); border: 1px solid rgba(201,146,42,0.38);
+  border-radius: 20px; padding: 5px 13px;
+  font-size: 11px; font-weight: 700; color: var(--gold-light);
+}
+
+.menu-main { width: 100%; max-width: 400px; }
+.menu-title { font-family: 'Bebas Neue', sans-serif; font-size: 34px; color: var(--gold-light); letter-spacing: 3px; text-shadow: 0 0 36px var(--gold-glow); }
+.menu-sub   { font-size: 11px; color: rgba(255,255,255,0.38); margin-top: 5px; letter-spacing: 1px; }
+.menu-cards { display: flex; flex-direction: column; gap: 13px; margin-top: 28px; }
+
+.menu-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.065) 0%, rgba(255,255,255,0.025) 100%);
+  border: 1.5px solid rgba(201,146,42,0.28);
+  border-radius: 18px; padding: 20px 22px;
+  display: flex; align-items: center; gap: 16px;
+  cursor: pointer; transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.28); position: relative; overflow: hidden;
+}
+.menu-card::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(201,146,42,0.1),transparent 60%); opacity:0; transition:opacity 0.2s; }
+.menu-card:hover  { transform:translateY(-3px); border-color:rgba(201,146,42,0.55); box-shadow:0 14px 36px rgba(0,0,0,0.45); }
+.menu-card:hover::after { opacity:1; }
+.menu-card:active { transform:scale(0.96); }
+.menu-card.c-transport { border-color: rgba(26,128,128,0.32); }
+
+.mc-icon  { font-size: 34px; flex-shrink:0; filter:drop-shadow(0 0 8px rgba(201,146,42,0.38)); }
+.mc-body  { flex:1; }
+.mc-title { font-size: 16px; font-weight: 900; color: #fff; }
+.mc-desc  { font-size: 11px; color: rgba(255,255,255,0.42); margin-top: 3px; line-height:1.4; }
+.mc-arrow { font-size: 22px; color: var(--gold); flex-shrink:0; }
+
+.menu-card:nth-child(1) { animation: cardSlide 0.45s 0.08s both; }
+.menu-card:nth-child(2) { animation: cardSlide 0.45s 0.17s both; }
+.menu-card:nth-child(3) { animation: cardSlide 0.45s 0.26s both; }
+@keyframes cardSlide { from{opacity:0;transform:translateX(-18px)} to{opacity:1;transform:translateX(0)} }
+
+/* =============================================
+   SHARED TOP BAR
+   ============================================= */
+.top-bar {
+  background: var(--brown); height: 52px;
+  display: flex; align-items: center; padding: 0 14px; gap: 10px;
+  flex-shrink: 0; box-shadow: 0 3px 14px rgba(0,0,0,0.38); z-index: 10; position: relative;
+}
+.back-btn {
+  background: rgba(201,146,42,0.16); border: 1px solid rgba(201,146,42,0.38);
+  border-radius: 9px; color: var(--gold-light); font-size: 12px; font-weight: 700;
+  padding: 6px 11px; cursor: pointer; transition: all 0.14s; white-space: nowrap; flex-shrink:0;
+}
+.back-btn:active { background: rgba(201,146,42,0.32); transform:scale(0.95); }
+.top-bar-title { font-family:'Bebas Neue',sans-serif; font-size:19px; color:var(--gold-light); letter-spacing:2px; flex:1; text-align:center; }
+.top-bar-spacer { flex-shrink:0; width:66px; }
+
+/* =============================================
+   ③ CHAT SCREEN
+   ============================================= */
+#screen-chat { background: var(--cream); overflow: hidden; }
+
+.bulletin-bar {
+  background: var(--brown); padding: 9px 14px;
+  border-bottom: 2px solid rgba(201,146,42,0.38); flex-shrink:0;
+}
+.bulletin-row { display:flex; gap:9px; align-items:center; flex-wrap:wrap; }
+.b-chip { background:rgba(201,146,42,0.17); border:1.5px solid var(--gold); border-radius:7px; padding:3px 9px; display:flex; flex-direction:column; }
+.b-lbl { font-size:8px; font-weight:700; color:var(--gold-light); letter-spacing:1px; }
+.b-val { font-family:'Bebas Neue',sans-serif; font-size:15px; color:#fff; letter-spacing:1px; }
+.b-note { flex:1; color:rgba(255,255,255,0.78); font-size:12px; font-weight:700; min-width:80px; }
+.b-edit-btn { font-size:10px; color:rgba(255,255,255,0.32); cursor:pointer; text-decoration:underline; white-space:nowrap; flex-shrink:0; }
+.b-edit-form { display:none; flex-direction:column; gap:5px; margin-top:7px; }
+.b-edit-form.open { display:flex; }
+.b-edit-form input, .b-edit-form textarea { border:1px solid var(--gold); border-radius:5px; background:rgba(255,255,255,0.08); color:#fff; padding:5px 9px; font-family:'Noto Sans JP',sans-serif; font-size:12px; }
+.b-edit-form input::placeholder, .b-edit-form textarea::placeholder { color:rgba(255,255,255,0.28); }
+.b-edit-form button { background:var(--gold); color:var(--brown); border:none; border-radius:5px; padding:6px; font-weight:900; font-size:12px; cursor:pointer; }
+
+.chat-layout { display:flex; flex:1; overflow:hidden; }
+
+/* Sidebar */
+.chat-sb {
+  width: 230px; flex-shrink:0;
+  background: linear-gradient(175deg, var(--brown) 0%, var(--brown-mid) 100%);
+  border-right: 2px solid rgba(201,146,42,0.28);
+  display: flex; flex-direction:column; overflow-y:auto;
+}
+.sb-sec { padding:12px; border-bottom:1px solid rgba(201,146,42,0.13); }
+.sb-ttl { font-size:9px; font-weight:900; color:rgba(240,192,96,0.65); letter-spacing:2px; margin-bottom:8px; }
+
+.stamp-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+.stamp-btn { padding:6px 4px; border-radius:7px; border:1px solid rgba(201,146,42,0.22); background:rgba(255,255,255,0.04); color:#fff; font-size:10px; font-weight:700; cursor:pointer; line-height:1.3; text-align:center; transition:all 0.12s; }
+.stamp-btn:active { background:var(--gold); color:var(--brown); transform:scale(0.93); }
+
+.ranking-list { display:flex; flex-direction:column; gap:4px; }
+.rank-item { display:flex; align-items:center; gap:5px; padding:5px 7px; background:rgba(255,255,255,0.055); border-radius:7px; border:1px solid rgba(201,146,42,0.12); }
+.rank-medal { font-size:14px; flex-shrink:0; }
+.rank-info { flex:1; min-width:0; }
+.rank-nm { font-size:10px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rank-tm { font-size:9px; color:rgba(240,192,96,0.55); }
+.rank-empty { font-size:10px; color:rgba(255,255,255,0.28); text-align:center; padding:5px 0; }
+
+.ready-btn { width:100%; padding:9px; border-radius:9px; border:none; background:linear-gradient(135deg,var(--teal),var(--teal-light)); color:#fff; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:900; cursor:pointer; margin-top:7px; transition:all 0.14s; letter-spacing:1px; }
+.ready-btn:active { transform:scale(0.95); }
+.reset-rank-btn { width:100%; padding:5px; border-radius:6px; border:1px solid rgba(201,146,42,0.18); background:transparent; color:rgba(240,192,96,0.45); font-size:10px; font-weight:700; cursor:pointer; margin-top:4px; }
+.reset-rank-btn:active { background:rgba(201,146,42,0.12); }
+
+/* Chat main */
+.chat-main { flex:1; display:flex; flex-direction:column; overflow:hidden; background:var(--ivory); }
+.chat-msgs { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:9px; scroll-behavior:smooth; }
+
+.msg { display:flex; flex-direction:column; max-width:78%; animation:msgIn 0.2s ease-out both; }
+@keyframes msgIn { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:translateY(0)} }
+.msg.own   { align-self:flex-end; align-items:flex-end; }
+.msg.other { align-self:flex-start; align-items:flex-start; }
+.msg.sys   { align-self:center; max-width:90%; }
+
+.msg-meta { display:flex; align-items:center; gap:4px; margin-bottom:3px; }
+.msg-av { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; flex-shrink:0; }
+.msg-nm { font-size:10px; font-weight:700; color:var(--text-mid); }
+.msg-tm { font-size:9px; color:var(--text-light); }
+
+.msg-body { padding:8px 12px; border-radius:13px; font-size:14px; line-height:1.5; word-break:break-word; }
+.msg.own   .msg-body { background:linear-gradient(135deg,var(--brown-mid),var(--brown)); color:#fff; border-bottom-right-radius:3px; }
+.msg.other .msg-body { background:#fff; color:var(--text-dark); border:1.5px solid rgba(62,31,0,0.09); border-bottom-left-radius:3px; box-shadow:0 2px 7px rgba(0,0,0,0.07); }
+.msg.sys   .msg-body { background:linear-gradient(135deg,var(--gold),var(--brown-light)); color:#fff; border-radius:13px; text-align:center; font-weight:700; font-size:12px; padding:6px 13px; box-shadow:0 4px 12px var(--gold-glow); }
+
+.chat-ibar { padding:9px 11px; background:#fff; border-top:1.5px solid rgba(0,0,0,0.07); display:flex; gap:7px; align-items:flex-end; flex-shrink:0; }
+.chat-inp { flex:1; border:2px solid rgba(62,31,0,0.13); border-radius:12px; padding:9px 13px; font-family:'Noto Sans JP',sans-serif; font-size:14px; background:var(--cream); color:var(--text-dark); resize:none; outline:none; transition:border-color 0.2s; max-height:105px; min-height:42px; overflow-y:auto; }
+.chat-inp:focus { border-color:var(--gold); }
+.send-btn { width:44px; height:44px; border-radius:50%; border:none; background:linear-gradient(135deg,var(--gold),var(--brown-light)); color:#fff; font-size:18px; cursor:pointer; box-shadow:0 4px 12px var(--gold-glow); transition:all 0.14s; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.send-btn:active { transform:scale(0.9); }
+
+/* Part avatar colors */
+.pc-f  { background:#6B8B3C; color:#fff; }
+.pc-c  { background:#1A6B6B; color:#fff; }
+.pc-sx { background:#8B5E3C; color:#fff; }
+.pc-hr { background:#6B6B1A; color:#fff; }
+.pc-tp { background:#C9922A; color:#fff; }
+.pc-tb { background:#8B1A1A; color:#fff; }
+.pc-tu { background:#3A1A6B; color:#fff; }
+.pc-pr { background:#3C3C3C; color:#fff; }
+.pc-df { background:#5C2E0A; color:#fff; }
+
+/* =============================================
+   ④ TRANSPORT SCREEN
+   ============================================= */
+#screen-transport { background:var(--ivory); overflow:hidden; }
+
+.transport-body { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:14px; }
+
+.t-progress { background:#fff; border-radius:13px; padding:13px 15px; border:1.5px solid rgba(201,146,42,0.2); display:flex; align-items:center; gap:13px; }
+.prog-wrap { flex:1; }
+.prog-label { font-size:10px; color:var(--text-light); margin-bottom:5px; }
+.prog-bar { height:9px; background:rgba(62,31,0,0.09); border-radius:9px; overflow:hidden; }
+.prog-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-light)); border-radius:9px; transition:width 0.42s ease; }
+.prog-text { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--gold); white-space:nowrap; }
+
+.t-add-card { background:#fff; border:2px dashed rgba(201,146,42,0.38); border-radius:16px; padding:15px; }
+.t-add-title { font-size:11px; font-weight:900; color:var(--text-mid); letter-spacing:1px; margin-bottom:9px; }
+.t-add-row { display:flex; gap:7px; }
+.t-add-inp { flex:1; border:2px solid rgba(201,146,42,0.32); border-radius:11px; padding:10px 13px; font-family:'Noto Sans JP',sans-serif; font-size:14px; color:var(--text-dark); background:var(--cream); outline:none; transition:border-color 0.2s; }
+.t-add-inp:focus { border-color:var(--gold); }
+.t-add-btn { padding:10px 16px; border-radius:11px; border:none; background:linear-gradient(135deg,var(--gold),var(--brown-light)); color:#fff; font-family:'Noto Sans JP',sans-serif; font-size:13px; font-weight:900; cursor:pointer; box-shadow:0 4px 12px var(--gold-glow); transition:all 0.14s; white-space:nowrap; }
+.t-add-btn:active { transform:scale(0.95); }
+
+.t-sec-title { font-size:10px; font-weight:900; color:var(--text-mid); letter-spacing:2px; display:flex; align-items:center; gap:7px; }
+.t-sec-title::after { content:''; flex:1; height:1px; background:rgba(62,31,0,0.11); }
+
+.t-list { display:flex; flex-direction:column; gap:8px; }
+
+.t-item { background:#fff; border-radius:13px; border:1.5px solid rgba(62,31,0,0.09); padding:13px 14px; display:flex; align-items:center; gap:11px; box-shadow:0 2px 7px rgba(0,0,0,0.05); transition:all 0.24s; }
+.t-item.done { background:linear-gradient(135deg,rgba(13,92,92,0.06),rgba(13,92,92,0.02)); border-color:rgba(13,92,92,0.28); }
+
+.t-chk { width:30px; height:30px; border-radius:50%; border:2.5px solid rgba(62,31,0,0.18); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:all 0.2s; flex-shrink:0; }
+.t-chk.done-chk { background:linear-gradient(135deg,var(--teal),var(--teal-light)); border-color:var(--teal); box-shadow:0 4px 10px rgba(13,92,92,0.32); }
+
+.t-item-info { flex:1; }
+.t-item-name { font-size:14px; font-weight:700; color:var(--text-dark); transition:all 0.2s; }
+.t-item.done .t-item-name { color:var(--teal); text-decoration:line-through; text-decoration-color:rgba(13,92,92,0.38); }
+.t-item-by { font-size:10px; color:var(--text-light); margin-top:2px; }
+
+.t-del { background:transparent; border:1px solid rgba(62,31,0,0.1); border-radius:7px; padding:4px 8px; font-size:11px; color:rgba(62,31,0,0.28); cursor:pointer; transition:all 0.13s; }
+.t-del:active { background:rgba(122,21,21,0.09); border-color:var(--red-dark); color:var(--red-dark); }
+
+.t-empty { text-align:center; color:var(--text-light); font-size:13px; padding:30px 0; line-height:1.7; }
+
+/* =============================================
+   ⑤ METRONOME SCREEN
+   ============================================= */
+#screen-metro {
+  background: radial-gradient(ellipse at 50% 35%, #3D1D00 0%, #180700 58%, #080300 100%);
+  overflow: hidden;
+}
+.metro-top-bar { background:rgba(40,16,0,0.75); backdrop-filter:blur(10px); border-bottom:1px solid rgba(201,146,42,0.18); }
+
+.metro-body { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:22px; gap:26px; }
+
+.m-visual { position:relative; display:flex; align-items:center; justify-content:center; }
+.m-outer { width:196px; height:196px; border-radius:50%; border:2px solid rgba(201,146,42,0.18); display:flex; align-items:center; justify-content:center; transition:all 0.06s; }
+.m-outer.ba { border-color:var(--gold); box-shadow:0 0 38px var(--gold-glow),0 0 72px rgba(201,146,42,0.18); }
+.m-outer.bw { border-color:rgba(201,146,42,0.45); box-shadow:0 0 18px rgba(201,146,42,0.22); }
+.m-inner { width:146px; height:146px; border-radius:50%; background:rgba(201,146,42,0.055); border:1.5px solid rgba(201,146,42,0.13); display:flex; flex-direction:column; align-items:center; justify-content:center; transition:all 0.06s; }
+.m-inner.ba { background:rgba(201,146,42,0.23); border-color:rgba(201,146,42,0.48); }
+.m-bpm { font-family:'Bebas Neue',sans-serif; font-size:60px; color:var(--gold-light); line-height:1; text-shadow:0 0 28px var(--gold-glow); }
+.m-unit { font-size:12px; color:rgba(240,192,96,0.48); letter-spacing:3px; margin-top:-3px; }
+
+.m-dots { display:flex; gap:9px; }
+.m-dot { width:13px; height:13px; border-radius:50%; background:rgba(201,146,42,0.18); border:1px solid rgba(201,146,42,0.28); transition:all 0.06s; }
+.m-dot.on { background:var(--gold); box-shadow:0 0 10px var(--gold-glow); }
+
+.m-ctrl { width:100%; max-width:330px; display:flex; flex-direction:column; gap:13px; }
+.bpm-row { display:flex; align-items:center; gap:11px; }
+.bpm-adj { width:50px; height:50px; border-radius:50%; border:2px solid rgba(201,146,42,0.38); background:rgba(201,146,42,0.09); color:var(--gold-light); font-size:22px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.13s; flex-shrink:0; }
+.bpm-adj:active { background:var(--gold); color:var(--brown); transform:scale(0.9); }
+.bpm-sl { flex:1; -webkit-appearance:none; height:5px; background:rgba(201,146,42,0.22); border-radius:5px; outline:none; }
+.bpm-sl::-webkit-slider-thumb { -webkit-appearance:none; width:21px; height:21px; border-radius:50%; background:var(--gold); cursor:pointer; box-shadow:0 0 9px var(--gold-glow); }
+
+.m-presets { display:flex; gap:7px; flex-wrap:wrap; justify-content:center; }
+.pre-btn { padding:6px 13px; border-radius:9px; border:1px solid rgba(201,146,42,0.28); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.65); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.13s; text-align:center; line-height:1.4; }
+.pre-btn:active { background:rgba(201,146,42,0.22); border-color:var(--gold); color:var(--gold-light); }
+
+.m-start { width:100%; max-width:270px; padding:17px; border-radius:16px; border:none; font-family:'Noto Sans JP',sans-serif; font-size:17px; font-weight:900; cursor:pointer; letter-spacing:2px; transition:all 0.2s; }
+.m-start.stopped { background:linear-gradient(135deg,var(--gold),#E0A828); color:var(--brown); box-shadow:0 7px 24px var(--gold-glow); }
+.m-start.running  { background:var(--red-dark); color:#fff; box-shadow:0 7px 24px rgba(122,21,21,0.48); }
+.m-start:active   { transform:scale(0.96); }
+
+/* =============================================
+   TOAST
+   ============================================= */
+.toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--brown); color:#fff; border:1.5px solid var(--gold); border-radius:11px; padding:9px 18px; font-size:13px; font-weight:700; z-index:9999; white-space:nowrap; box-shadow:0 7px 22px rgba(0,0,0,0.5); animation:toastUp 0.28s ease-out; }
+@keyframes toastUp { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+
+/* =============================================
+   SCROLLBARS
+   ============================================= */
+.chat-msgs::-webkit-scrollbar,.chat-sb::-webkit-scrollbar,.transport-body::-webkit-scrollbar { width:4px; }
+.chat-msgs::-webkit-scrollbar-thumb  { background:rgba(62,31,0,0.18); border-radius:4px; }
+.chat-sb::-webkit-scrollbar-thumb    { background:rgba(255,255,255,0.13); border-radius:4px; }
+.transport-body::-webkit-scrollbar-thumb { background:rgba(62,31,0,0.13); border-radius:4px; }
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width:580px) {
+  .chat-sb { width:195px; }
+  .mc-desc { display:none; }
+}
+@media (max-width:450px) {
+  .chat-layout { flex-direction:column; }
+  .chat-sb { width:100%; max-height:165px; flex-direction:row; overflow-x:auto; overflow-y:hidden; border-right:none; border-bottom:2px solid rgba(201,146,42,0.25); }
+  .sb-sec  { flex-shrink:0; min-width:170px; border-bottom:none; border-right:1px solid rgba(201,146,42,0.13); }
+  .m-outer { width:160px; height:160px; }
+  .m-inner { width:118px; height:118px; }
+  .m-bpm   { font-size:48px; }
+  .start-card { padding:28px 22px; }
+}
+</style>
+</head>
+<body>
+
+<div id="bg-flash"></div>
+
+<!-- ============================================================
+     ① START SCREEN
+     ============================================================ -->
+<div id="screen-start" class="screen active">
+  <div class="deco-ring"></div>
+  <div class="deco-ring"></div>
+  <div class="start-card">
+    <div class="start-logo-wrap">
+      <div class="start-emblem">🎺</div>
+      <div class="start-logo-text">SUIKONE</div>
+      <div class="start-sub">吹奏楽コネクトシステム</div>
+    </div>
+    <div class="start-form">
+      <div>
+        <div class="field-label">YOUR NAME</div>
+        <input class="s-input" id="s-name" placeholder="例：田中 花音" maxlength="20"
+               onkeydown="if(event.key==='Enter')doStart()">
+      </div>
+      <div>
+        <div class="field-label">PART / パート</div>
+        <select class="s-select" id="s-part">
+          <option value="">パートを選択してください</option>
+          <option value="フルート">🎵 フルート</option>
+          <option value="オーボエ">🎵 オーボエ</option>
+          <option value="クラリネット">🎵 クラリネット</option>
+          <option value="ファゴット">🎵 ファゴット</option>
+          <option value="サックス">🎷 サックス</option>
+          <option value="ホルン">🎺 ホルン</option>
+          <option value="トランペット">🎺 トランペット</option>
+          <option value="トロンボーン">🎺 トロンボーン</option>
+          <option value="ユーフォ">🎺 ユーフォニアム</option>
+          <option value="チューバ">🎺 チューバ</option>
+          <option value="打楽器">🥁 打楽器</option>
+          <option value="コンバス">🎸 コントラバス</option>
+          <option value="指揮者">🎼 指揮者</option>
+          <option value="顧問">📋 顧問</option>
+        </select>
+      </div>
+      <div>
+        <div class="field-label">PART CODE（パート名をローマ字で）</div>
+        <input class="s-input" id="s-code" type="password"
+               placeholder="例: フルート → flute"
+               onkeydown="if(event.key==='Enter')doStart()">
+      </div>
+      <div class="start-error" id="s-error"></div>
+      <button class="start-btn" onclick="doStart()">🎵 スイコネに入室する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     ② MENU SCREEN
+     ============================================================ -->
+<div id="screen-menu" class="screen">
+  <div class="menu-header-bar">
+    <div class="menu-logo-sm">SUIKONE</div>
+    <div class="menu-user-chip" id="menu-chip">👤 ゲスト</div>
+  </div>
+  <div class="menu-main">
+    <div class="menu-title" id="menu-greeting">こんにちは！</div>
+    <div class="menu-sub">どの機能を使いますか？</div>
+    <div class="menu-cards">
+      <div class="menu-card" onclick="goTo('chat')">
+        <div class="mc-icon">💬</div>
+        <div class="mc-body">
+          <div class="mc-title">チャット & 掲示板</div>
+          <div class="mc-desc">メンバーとリアルタイム連絡・スタンプ送信</div>
+        </div>
+        <div class="mc-arrow">›</div>
+      </div>
+      <div class="menu-card c-transport" onclick="goTo('transport')">
+        <div class="mc-icon">🚛</div>
+        <div class="mc-body">
+          <div class="mc-title">楽器運搬チェック</div>
+          <div class="mc-desc">積み込み完了をリアルタイム共有</div>
+        </div>
+        <div class="mc-arrow">›</div>
+      </div>
+      <div class="menu-card" onclick="goTo('metro')">
+        <div class="mc-icon">🎵</div>
+        <div class="mc-body">
+          <div class="mc-title">メトロノーム</div>
+          <div class="mc-desc">視覚・聴覚でテンポをキープ</div>
+        </div>
+        <div class="mc-arrow">›</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     ③ CHAT SCREEN
+     ============================================================ -->
+<div id="screen-chat" class="screen">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goTo('menu')">‹ メニュー</button>
+    <div class="top-bar-title">CHAT & 掲示板</div>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <div class="bulletin-bar">
+    <div class="bulletin-row">
+      <div class="b-chip"><span class="b-lbl">PITCH</span><span class="b-val" id="b-pitch">A=442</span></div>
+      <div class="b-chip"><span class="b-lbl">TEMP</span><span class="b-val" id="b-temp">--°C</span></div>
+      <div class="b-note" id="b-note">連絡事項はここに表示されます</div>
+      <span class="b-edit-btn" onclick="toggleBulletin()">編集</span>
+    </div>
+    <div class="b-edit-form" id="b-form">
+      <input type="text" id="e-pitch" placeholder="ピッチ（例: A=442Hz）" maxlength="20">
+      <input type="text" id="e-temp"  placeholder="気温（例: 23°C）" maxlength="10">
+      <textarea id="e-note" placeholder="本日の連絡事項" rows="2" maxlength="100"></textarea>
+      <button onclick="saveBulletin()">💾 保存</button>
+    </div>
+  </div>
+
+  <div class="chat-layout">
+    <div class="chat-sb">
+      <div class="sb-sec">
+        <div class="sb-ttl">💬 スタンプ</div>
+        <div class="stamp-grid" id="stamp-grid"></div>
+      </div>
+      <div class="sb-sec">
+        <div class="sb-ttl">🏆 準備ランキング</div>
+        <div class="ranking-list" id="ranking-list"><div class="rank-empty">まだ誰もいません</div></div>
+        <button class="ready-btn"      onclick="markReady()">✅ 準備完了！</button>
+        <button class="reset-rank-btn" onclick="resetRanking()">🔄 リセット（管理者）</button>
+      </div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="chat-ibar">
+        <textarea class="chat-inp" id="chat-inp" placeholder="メッセージを入力..." rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     ④ TRANSPORT SCREEN
+     ============================================================ -->
+<div id="screen-transport" class="screen">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goTo('menu')">‹ メニュー</button>
+    <div class="top-bar-title">楽器運搬チェック</div>
+    <div class="top-bar-spacer"></div>
+  </div>
+  <div class="transport-body">
+    <div class="t-progress">
+      <div class="prog-wrap">
+        <div class="prog-label">積み込み進捗</div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div class="prog-text" id="prog-text">0 / 0</div>
+    </div>
+    <div class="t-add-card">
+      <div class="t-add-title">＋ 楽器・機材を追加する</div>
+      <div class="t-add-row">
+        <input class="t-add-inp" id="t-inp" placeholder="例：コントラバスクラリネット、譜面台×5"
+               maxlength="40" onkeydown="if(event.key==='Enter')addItem()">
+        <button class="t-add-btn" onclick="addItem()">追加</button>
+      </div>
+    </div>
+    <div class="t-sec-title">チェックリスト</div>
+    <div class="t-list" id="t-list">
+      <div class="t-empty">まだ楽器が追加されていません<br>上のフォームから追加してください 🎺</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     ⑤ METRONOME SCREEN
+     ============================================================ -->
+<div id="screen-metro" class="screen">
+  <div class="top-bar metro-top-bar">
+    <button class="back-btn" onclick="goTo('menu');stopMetro()">‹ メニュー</button>
+    <div class="top-bar-title">METRONOME</div>
+    <div class="top-bar-spacer"></div>
+  </div>
+  <div class="metro-body">
+    <div class="m-visual">
+      <div class="m-outer" id="m-outer">
+        <div class="m-inner" id="m-inner">
+          <div class="m-bpm" id="m-bpm">120</div>
+          <div class="m-unit">BPM</div>
+        </div>
+      </div>
+    </div>
+    <div class="m-dots" id="m-dots">
+      <div class="m-dot"></div><div class="m-dot"></div>
+      <div class="m-dot"></div><div class="m-dot"></div>
+    </div>
+    <div class="m-ctrl">
+      <div class="bpm-row">
+        <button class="bpm-adj" onclick="chBpm(-1)">−</button>
+        <input type="range" class="bpm-sl" id="m-sl" min="40" max="240" value="120" oninput="setBpm(+this.value)">
+        <button class="bpm-adj" onclick="chBpm(+1)">＋</button>
+      </div>
+      <div class="m-presets">
+        <button class="pre-btn" onclick="setBpm(60)">♩=60<br><small>Largo</small></button>
+        <button class="pre-btn" onclick="setBpm(80)">♩=80<br><small>Andante</small></button>
+        <button class="pre-btn" onclick="setBpm(100)">♩=100<br><small>Moderato</small></button>
+        <button class="pre-btn" onclick="setBpm(120)">♩=120<br><small>Allegro</small></button>
+        <button class="pre-btn" onclick="setBpm(160)">♩=160<br><small>Presto</small></button>
+      </div>
+    </div>
+    <button class="m-start stopped" id="m-start-btn" onclick="toggleMetro()">▶ スタート</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     FIREBASE + LOGIC
+     ============================================================ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, onSnapshot,
+  query, orderBy, limit, doc, setDoc, getDoc,
+  getDocs, deleteDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+/* ========================================
+   🔥 FIREBASE CONFIG — ここを書き換えてください
+   ======================================== */
+const firebaseConfig = {
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_AUTH_DOMAIN",
+  projectId:         "YOUR_PROJECT_ID",
+  storageBucket:     "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId:             "YOUR_APP_ID"
+};
+
+let db = null;
+try {
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+} catch(e) {
+  console.warn("Firebase未設定 → デモモード");
+}
+
+/* ========================================
+   STATE
+   ======================================== */
+let user          = null;
+let rankData      = [];
+let transportData = [];
+let chatUnsub     = null;
+let rankUnsub     = null;
+let bltUnsub      = null;
+let trnUnsub      = null;
+
+// Metronome
+let audioCtx  = null;
+let bpm       = 120;
+let running   = false;
+let metroTmr  = null;
+let beat      = 0;
+
+/* ========================================
+   PART CODE MAP（パート名ひらがな）
+   ======================================== */
+const CODES = {
+  'フルート':'flute','オーボエ':'oboe','クラリネット':'clarinet',
+  'ファゴット':'fagotto','サックス':'sax','ホルン':'horn',
+  'トランペット':'trumpet','トロンボーン':'trombone','ユーフォ':'euphonium',
+  'チューバ':'tuba','打楽器':'percussion','コンバス':'contrabass',
+  '指揮者':'conductor','顧問':'advisor'
+};
+
+/* ========================================
+   SCREEN NAVIGATION
+   ======================================== */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => {
+    if (s.id === 'screen-' + id) {
+      s.classList.remove('exit');
+      s.classList.add('active');
+    } else if (s.classList.contains('active')) {
+      s.classList.remove('active');
+      s.classList.add('exit');
+      setTimeout(() => s.classList.remove('exit'), 400);
+    }
+  });
+}
+window.goTo = showScreen;
+
+/* ========================================
+   START
+   ======================================== */
+window.doStart = function() {
+  const name = document.getElementById('s-name').value.trim();
+  const part = document.getElementById('s-part').value;
+  const code = document.getElementById('s-code').value.trim().toLowerCase();
+  const errEl = document.getElementById('s-error');
+
+  if (!name) { showErr('名前を入力してください'); return; }
+  if (!part) { showErr('パートを選択してください'); return; }
+  if (code !== CODES[part]) {
+    showErr('パートコードが違います！ヒント: パート名をローマ字で');
+    document.getElementById('s-code').value = '';
+    return;
+  }
+
+  errEl.textContent = '';
+  user = { name, part };
+
+  document.getElementById('menu-chip').textContent = `${part} ${name}`;
+  document.getElementById('menu-greeting').textContent = `${name}さん、おはよう！`;
+
+  showScreen('menu');
+  initAll();
+};
+
+function showErr(msg) {
+  const el = document.getElementById('s-error');
+  el.textContent = msg;
+  el.classList.remove('shake');
+  void el.offsetWidth;
+  el.classList.add('shake');
+}
+
+/* ========================================
+   INIT ALL LISTENERS
+   ======================================== */
+function initAll() {
+  if (!db) { loadDemoChat(); initStamps(); return; }
+  listenChat();
+  listenRanking();
+  listenBulletin();
+  listenTransport();
+  initStamps();
+}
+
+/* ========================================
+   CHAT
+   ======================================== */
+function listenChat() {
+  if (chatUnsub) chatUnsub();
+  const q = query(collection(db,'messages'), orderBy('timestamp','asc'), limit(200));
+  chatUnsub = onSnapshot(q, snap => {
+    const area = document.getElementById('chat-msgs');
+    area.innerHTML = '';
+    snap.forEach(d => appendMsg(d.data()));
+    scrollChat();
+  });
+}
+
+function appendMsg(d) {
+  const area  = document.getElementById('chat-msgs');
+  const isOwn = user && d.name === user.name && d.part === user.part;
+  const isSys = d.type === 'system';
+  const el    = document.createElement('div');
+
+  if (isSys) {
+    el.className = 'msg sys';
+    el.innerHTML = `<div class="msg-body">${x(d.text)}</div>`;
+  } else {
+    el.className = `msg ${isOwn ? 'own' : 'other'}`;
+    const pc = pcolor(d.part);
+    const av = (d.name||'?').charAt(0);
+    const tm = d.timestamp?.toDate ? fmt(d.timestamp.toDate()) : '';
+    const ord = isOwn ? 'flex-direction:row-reverse' : '';
+    el.innerHTML = `
+      <div class="msg-meta" style="${ord}">
+        <div class="msg-av ${pc}">${x(av)}</div>
+        <span class="msg-nm">${x(d.part)} ${x(d.name)}</span>
+        <span class="msg-tm">${tm}</span>
+      </div>
+      <div class="msg-body">${x(d.text)}</div>`;
+  }
+  area.appendChild(el);
+}
+
+window.sendChat = async function(txt) {
+  if (!user) { showToast('先に入室してください'); return; }
+  const inp = document.getElementById('chat-inp');
+  const t   = txt || inp.value.trim();
+  if (!t) return;
+  if (!txt) { inp.value = ''; inp.style.height = 'auto'; }
+  const d = { name:user.name, part:user.part, text:t, type:'chat', timestamp: db ? serverTimestamp() : Date.now() };
+  if (db) await addDoc(collection(db,'messages'), d);
+  else { appendMsg({ ...d, timestamp:{toDate:()=>new Date()} }); scrollChat(); }
+};
+
+async function sysmsg(text) {
+  const d = { text, type:'system', timestamp: db ? serverTimestamp() : Date.now() };
+  if (db) await addDoc(collection(db,'messages'), d);
+  else { appendMsg({ ...d, timestamp:{toDate:()=>new Date()} }); scrollChat(); }
+}
+
+window.handleKey = e => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } };
+window.autoResize = el => { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,105)+'px'; };
+function scrollChat() { const a=document.getElementById('chat-msgs'); setTimeout(()=>a.scrollTop=a.scrollHeight, 60); }
+
+function loadDemoChat() {
+  [
+    { text:'🎺 スイコネへようこそ！今日も頑張りましょう！', type:'system', timestamp:{toDate:()=>new Date(Date.now()-60000)} },
+    { name:'田中 花音', part:'クラリネット', text:'おはようございます！', type:'chat', timestamp:{toDate:()=>new Date(Date.now()-20000)} },
+  ].forEach(appendMsg);
+  scrollChat();
+}
+
+/* ========================================
+   STAMPS
+   ======================================== */
+const STAMPS = [
+  {e:'✅',t:'了解！'},{e:'🎺',t:'チューニング中'},{e:'⏰',t:'10分から合奏'},
+  {e:'🔇',t:'静かにして！'},{e:'🎵',t:'もう一回！'},{e:'👏',t:'よくできました！'},
+  {e:'💨',t:'ブレスから！'},{e:'🎼',t:'○番から合わせ'},{e:'🚀',t:'準備OK！'},
+  {e:'🙏',t:'お疲れ様！'},{e:'🔥',t:'もっと元気よく'},{e:'📢',t:'集合してください'},
+];
+
+function initStamps() {
+  const grid = document.getElementById('stamp-grid');
+  if (grid.children.length) return;
+  STAMPS.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'stamp-btn';
+    b.innerHTML = `${s.e}<br>${s.t}`;
+    b.onclick = () => { if (!user) { showToast('先に入室してください'); return; } sendChat(s.t); };
+    grid.appendChild(b);
+  });
+}
+
+/* ========================================
+   RANKING
+   ======================================== */
+function listenRanking() {
+  if (rankUnsub) rankUnsub();
+  const q = query(collection(db,`ranking_${today()}`), orderBy('timestamp','asc'));
+  rankUnsub = onSnapshot(q, snap => {
+    rankData = [];
+    snap.forEach(d => rankData.push({ id:d.id, ...d.data() }));
+    renderRanking();
+  });
+}
+
+window.markReady = async function() {
+  if (!user) { showToast('先に入室してください'); return; }
+  if (rankData.find(r => r.name===user.name && r.part===user.part)) { showToast('すでに準備完了済みです！'); return; }
+  const entry = { name:user.name, part:user.part, timestamp: db ? serverTimestamp() : Date.now() };
+  if (db) await setDoc(doc(db,`ranking_${today()}`,`${user.part}_${user.name}`), entry);
+  else { rankData.push({...entry,timestamp:{toDate:()=>new Date()}}); renderRanking(); }
+  sysmsg(`🎯 ${user.part}の${user.name}さんが準備完了！`);
+};
+
+window.resetRanking = async function() {
+  if (!confirm('ランキングをリセットしますか？')) return;
+  if (db) {
+    const snap = await getDocs(collection(db,`ranking_${today()}`));
+    for (const d of snap.docs) await deleteDoc(d.ref);
+  } else { rankData = []; renderRanking(); }
+  sysmsg('🔄 準備ランキングがリセットされました！');
+};
+
+function renderRanking() {
+  const list = document.getElementById('ranking-list');
+  if (!rankData.length) { list.innerHTML='<div class="rank-empty">まだ誰もいません</div>'; return; }
+  const medals = ['🥇','🥈','🥉'];
+  list.innerHTML = rankData.map((r,i) => {
+    const tm = r.timestamp?.toDate ? fmt(r.timestamp.toDate()) : '';
+    const pc = pcolor(r.part);
+    return `<div class="rank-item">
+      <div class="rank-medal">${medals[i]||`${i+1}位`}</div>
+      <div class="msg-av ${pc}" style="width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0">${(r.name||'?').charAt(0)}</div>
+      <div class="rank-info"><div class="rank-nm">${x(r.part)} ${x(r.name)}</div><div class="rank-tm">${tm}</div></div>
+    </div>`;
+  }).join('');
+}
+
+/* ========================================
+   BULLETIN
+   ======================================== */
+function listenBulletin() {
+  if (bltUnsub) bltUnsub();
+  bltUnsub = onSnapshot(doc(db,'bulletin','today'), snap => {
+    if (snap.exists()) applyBulletin(snap.data());
+  });
+}
+function applyBulletin(d) {
+  if (d.pitch) document.getElementById('b-pitch').textContent = d.pitch;
+  if (d.temp)  document.getElementById('b-temp').textContent  = d.temp;
+  if (d.note)  document.getElementById('b-note').textContent  = d.note;
+}
+window.toggleBulletin = () => document.getElementById('b-form').classList.toggle('open');
+window.saveBulletin = async function() {
+  const d = {
+    pitch: document.getElementById('e-pitch').value.trim(),
+    temp:  document.getElementById('e-temp').value.trim(),
+    note:  document.getElementById('e-note').value.trim(),
+  };
+  if (db) await setDoc(doc(db,'bulletin','today'), d, { merge:true });
+  else applyBulletin(d);
+  document.getElementById('b-form').classList.remove('open');
+  showToast('📌 掲示板を更新しました！');
+};
+
+/* ========================================
+   TRANSPORT
+   ======================================== */
+function listenTransport() {
+  if (trnUnsub) trnUnsub();
+  const q = query(collection(db,'transport'), orderBy('createdAt','asc'));
+  trnUnsub = onSnapshot(q, snap => {
+    transportData = [];
+    snap.forEach(d => transportData.push({ id:d.id, ...d.data() }));
+    renderTransport();
+  });
+}
+
+window.addItem = async function() {
+  const inp  = document.getElementById('t-inp');
+  const name = inp.value.trim();
+  if (!name) return;
+  if (!user) { showToast('先に入室してください'); return; }
+  inp.value = '';
+  const item = { name, done:false, checkedBy:'', createdBy:`${user.part} ${user.name}`, createdAt: db ? serverTimestamp() : Date.now() };
+  if (db) await addDoc(collection(db,'transport'), item);
+  else { transportData.push({ id:Date.now().toString(), ...item, createdAt:{toDate:()=>new Date()} }); renderTransport(); }
+};
+
+async function toggleItem(id) {
+  if (!user) { showToast('先に入室してください'); return; }
+  const item = transportData.find(i => i.id===id);
+  if (!item) return;
+  const nd = !item.done;
+  const upd = { done:nd, checkedBy: nd ? `${user.part} ${user.name}` : '' };
+  if (db) await setDoc(doc(db,'transport',id), upd, { merge:true });
+  else { Object.assign(item, upd); renderTransport(); }
+}
+
+async function delItem(id) {
+  if (db) await deleteDoc(doc(db,'transport',id));
+  else { transportData = transportData.filter(i=>i.id!==id); renderTransport(); }
+}
+
+function renderTransport() {
+  const list  = document.getElementById('t-list');
+  const total = transportData.length;
+  const done  = transportData.filter(i=>i.done).length;
+  const pct   = total ? Math.round(done/total*100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-text').textContent = `${done} / ${total}`;
+
+  if (!total) { list.innerHTML='<div class="t-empty">まだ楽器が追加されていません<br>上のフォームから追加してください 🎺</div>'; return; }
+  list.innerHTML = transportData.map(item => {
+    const dk  = item.done ? 'done' : '';
+    const ck  = item.done ? 'done-chk' : '';
+    const ico = item.done ? '✓' : '';
+    const by  = item.done && item.checkedBy
+      ? `✅ ${x(item.checkedBy)} が積み込み完了`
+      : `追加: ${x(item.createdBy||'')}`;
+    return `<div class="t-item ${dk}">
+      <button class="t-chk ${ck}" onclick="window._toggleItem('${item.id}')">${ico}</button>
+      <div class="t-item-info">
+        <div class="t-item-name">${x(item.name)}</div>
+        <div class="t-item-by">${by}</div>
+      </div>
+      <button class="t-del" onclick="window._delItem('${item.id}')">削除</button>
+    </div>`;
+  }).join('');
+}
+window._toggleItem = id => toggleItem(id);
+window._delItem    = id => { if(confirm('削除しますか？')) delItem(id); };
+
+/* ========================================
+   METRONOME
+   ======================================== */
+window.setBpm = function(v) {
+  bpm = Math.max(40, Math.min(240, +v));
+  document.getElementById('m-bpm').textContent = bpm;
+  document.getElementById('m-sl').value = bpm;
+  if (running) { stopMetro(); startMetro(); }
+};
+window.chBpm = d => setBpm(bpm + d);
+
+window.toggleMetro = function() { running ? stopMetro() : startMetro(); };
+
+function startMetro() {
+  if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  running = true; beat = 0;
+  const btn = document.getElementById('m-start-btn');
+  btn.textContent = '⏹ ストップ'; btn.className = 'm-start running';
+  tick();
+}
+function stopMetro() {
+  running = false; clearTimeout(metroTmr);
+  const btn = document.getElementById('m-start-btn');
+  if (btn) { btn.textContent = '▶ スタート'; btn.className = 'm-start stopped'; }
+  flashBeat(false, false);
+}
+window.stopMetro = stopMetro;
+
+function tick() {
+  if (!running) return;
+  const interval = 60000 / bpm;
+  const isAcc    = beat % 4 === 0;
+
+  // Sound
+  const now  = audioCtx.currentTime;
+  const osc  = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.frequency.value = isAcc ? 1320 : 880;
+  gain.gain.setValueAtTime(isAcc ? 0.55 : 0.27, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+  osc.start(now); osc.stop(now + 0.08);
+
+  // Visual
+  flashBeat(true, isAcc);
+  updDots(beat % 4);
+  setTimeout(() => flashBeat(false, false), 100);
+
+  beat++;
+  metroTmr = setTimeout(tick, interval);
+}
+
+function flashBeat(on, accent) {
+  const ou = document.getElementById('m-outer');
+  const in_ = document.getElementById('m-inner');
+  const bg  = document.getElementById('bg-flash');
+  if (!ou) return;
+  ou.className = 'm-outer' + (on ? (accent?' ba':' bw') : '');
+  in_.className = 'm-inner' + (on&&accent ? ' ba' : '');
+  bg.style.background = on ? (accent?'rgba(201,146,42,0.14)':'rgba(201,146,42,0.07)') : 'transparent';
+}
+function updDots(active) {
+  document.querySelectorAll('.m-dot').forEach((d,i) => d.classList.toggle('on', i===active));
+}
+
+/* ========================================
+   UTILS
+   ======================================== */
+const PC = {
+  'フルート':'pc-f','オーボエ':'pc-f','クラリネット':'pc-c','ファゴット':'pc-sx',
+  'サックス':'pc-sx','ホルン':'pc-hr','トランペット':'pc-tp','トロンボーン':'pc-tb',
+  'ユーフォ':'pc-tp','チューバ':'pc-tu','打楽器':'pc-pr','コンバス':'pc-pr',
+  '指揮者':'pc-df','顧問':'pc-df',
+};
+function pcolor(p) { return PC[p]||'pc-df'; }
+function x(s)      { if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmt(d)    { return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+function today()   { const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
+
+window.showToast = function(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+};
+</script>
+</body>
+</html>
