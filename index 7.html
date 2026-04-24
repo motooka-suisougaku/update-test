@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>元岡中学校吹奏楽部 公式サイト</title>
+<link rel="icon" href="https://raw.githubusercontent.com/motooka-suisougaku/suisougaku-Home-page/main/school_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600;700&family=Shippori+Mincho:wght@400;600;700&display=swap" rel="stylesheet">
+
+<meta name="description" content="福岡市立元岡中学校吹奏楽部の公式ホームページ。部活動紹介・実績・部員募集情報を掲載しています。">
+<meta property="og:title" content="福岡市立元岡中学校吹奏楽部 公式サイト">
+<meta property="og:image" content="https://raw.githubusercontent.com/motooka-suisougaku/suisougaku-Home-page/main/competition.jpg">
+<meta name="robots" content="index, follow">
+
+<style>
+:root {
+  --ink: #1a1209;
+  --paper: #faf6ef;
+  --warm: #c8964a;
+  --warm-light: #e8c882;
+  --accent: #8b2e2e;
+  --muted: #7a6a52;
+  --border: rgba(139, 107, 60, 0.25);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.9;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 18px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(250, 246, 239, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--ink);
+}
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--warm); }
+
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+.nav-toggle span {
+  width: 22px; height: 1.5px;
+  background: var(--ink);
+  transition: all 0.3s;
+}
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-img {
+  position: absolute;
+  inset: 0;
+  background: url("https://raw.githubusercontent.com/motooka-suisougaku/suisougaku-Home-page/main/competition.jpg") center/cover no-repeat;
+  filter: brightness(0.45) sepia(0.3);
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(26,18,9,0.85) 0%, transparent 60%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 80px 60px;
+  max-width: 800px;
+}
+
+.hero-eyebrow {
+  font-size: 11px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--warm-light);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 1s ease 0.3s forwards;
+}
+
+.hero-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+  letter-spacing: 4px;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 1s ease 0.6s forwards;
+}
+
+.hero-sub {
+  font-size: 15px;
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 1px;
+  opacity: 0;
+  animation: fadeUp 1s ease 0.9s forwards;
+}
+
+/* ── CONCERT ARCHIVE BANNER ── */
+.archive-banner {
+  background: var(--accent);
+  color: #fff;
+  text-align: center;
+  padding: 20px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.archive-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 10px,
+    rgba(255,255,255,0.04) 10px,
+    rgba(255,255,255,0.04) 20px
+  );
+}
+
+.archive-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.archive-tag {
+  font-size: 11px;
+  letter-spacing: 3px;
+  background: rgba(255,255,255,0.2);
+  padding: 4px 12px;
+  border-radius: 2px;
+}
+
+.archive-text {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+}
+
+/* ── SECTION BASE ── */
+.section {
+  padding: 96px 0;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+.section.visible { opacity: 1; transform: translateY(0); }
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.section-label {
+  font-size: 10px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--warm);
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--ink);
+  margin-bottom: 48px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── ABOUT ── */
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.about-text {
+  font-size: 15px;
+  color: #3a2e1e;
+  line-height: 2;
+}
+
+.about-slogan {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 20px;
+  letter-spacing: 3px;
+}
+
+.about-photos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.about-photos img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  border-radius: 4px;
+  filter: sepia(0.1);
+  transition: filter 0.3s;
+}
+.about-photos img:hover { filter: sepia(0); }
+.about-photos img:first-child {
+  grid-column: span 2;
+}
+
+/* ── ACHIEVEMENTS ── */
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  border: 1px solid var(--border);
+}
+
+.achievement-item {
+  padding: 32px 24px;
+  text-align: center;
+  border: 1px solid var(--border);
+  background: #fff;
+  transition: background 0.3s;
+}
+.achievement-item:hover { background: #fdf8f0; }
+
+.ach-year {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.ach-event {
+  font-size: 13px;
+  color: var(--ink);
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+
+.ach-award {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--warm);
+  letter-spacing: 2px;
+}
+
+.ach-award.gold { color: #c8853a; }
+.ach-award.silver { color: #8a9aaa; }
+
+/* ── RECRUIT ── */
+.recruit-card {
+  background: var(--ink);
+  color: #fff;
+  border-radius: 6px;
+  padding: 64px 56px;
+  position: relative;
+  overflow: hidden;
+}
+
+.recruit-card::before {
+  content: '♪';
+  position: absolute;
+  right: 40px;
+  top: 30px;
+  font-size: 120px;
+  color: rgba(255,255,255,0.05);
+  font-family: serif;
+  line-height: 1;
+}
+
+.recruit-heading {
+  font-family: 'Shippori Mincho', serif;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 700;
+  letter-spacing: 3px;
+  margin-bottom: 24px;
+  color: var(--warm-light);
+}
+
+.recruit-text {
+  font-size: 15px;
+  color: rgba(255,255,255,0.75);
+  line-height: 2;
+  max-width: 560px;
+}
+
+.recruit-note {
+  display: inline-block;
+  margin-top: 28px;
+  padding: 10px 28px;
+  border: 1px solid var(--warm);
+  color: var(--warm-light);
+  font-size: 13px;
+  letter-spacing: 2px;
+  border-radius: 2px;
+}
+
+/* ── FOOTER ── */
+footer {
+  background: var(--ink);
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  padding: 40px 24px;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0 40px;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .nav { padding: 16px 20px; }
+  .nav-links { display: none; flex-direction: column; position: fixed; top: 57px; left: 0; right: 0; background: var(--paper); padding: 24px 20px; border-bottom: 1px solid var(--border); gap: 16px; }
+  .nav-links.open { display: flex; }
+  .nav-toggle { display: flex; }
+
+  .hero-content { padding: 60px 24px; }
+
+  .about-grid { grid-template-columns: 1fr; }
+  .about-photos { grid-template-columns: 1fr 1fr; }
+  .about-photos img:first-child { grid-column: span 2; }
+
+  .achievements-grid { grid-template-columns: 1fr; }
+
+  .recruit-card { padding: 40px 28px; }
+  .recruit-card::before { display: none; }
+
+  .container { padding: 0 20px; }
+  .section { padding: 60px 0; }
+  .section-title { font-size: 22px; }
+  .divider { margin: 0 20px; }
+
+  .archive-inner { flex-direction: column; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">福岡市立元岡中学校 吹奏楽部</div>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#about">部活動紹介</a></li>
+    <li><a href="#achievements">実績</a></li>
+    <li><a href="#recruit">部員募集</a></li>
+    <li><a href="#concert">定期演奏会</a></li>
+  </ul>
+  <div class="nav-toggle" onclick="this.classList.toggle('open'); document.getElementById('navLinks').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-img"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Motooka Junior High School Wind Band</p>
+    <h1 class="hero-title">元岡中学校<br>吹奏楽部</h1>
+    <p class="hero-sub">基礎・感謝・行動 ── 音楽で、つながる。</p>
+  </div>
+</section>
+
+<!-- CONCERT ARCHIVE BANNER -->
+<div class="archive-banner" id="concert">
+  <div class="archive-inner">
+    <span class="archive-tag">ARCHIVE</span>
+    <span class="archive-text">2026年 定期演奏会 — 無事に終了しました。ご来場いただきありがとうございました。</span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section class="section" id="about">
+  <div class="container">
+    <div class="section-label">About Us</div>
+    <h2 class="section-title">部活動紹介</h2>
+    <div class="about-grid">
+      <div>
+        <p class="about-slogan">基礎・感謝・行動</p>
+        <p class="about-text">
+          元岡中学校吹奏楽部は、音楽を通じて仲間との絆を深め、技術を磨き、感動を届けることを目指して日々活動しています。<br><br>
+          県大会金賞・九州大会出場を目標に、基礎練習を中心とした日々の鍛錬を積み重ねています。部員一人ひとりの個性を大切にしながら、全員で一つの音を奏でることを大切にしています。
+        </p>
+      </div>
+      <div class="about-photos">
+        <img src="https://raw.githubusercontent.com/motooka-suisougaku/suisougaku-Home-page/main/syuugousyasinfukuokakokusaikaigizyou.jpg" alt="福岡国際会議場での集合写真">
+        <img src="https://raw.githubusercontent.com/motooka-suisougaku/suisougaku-Home-page/main/syuugousyasinitobunkakaikan.jpg" alt="糸島文化会館での集合写真">
+        <img src="https://raw.githubusercontent.com/motooka-suisougaku/suisougaku-Home-page/main/syuugousyasinitininennsei.jpg" alt="2年生集合写真">
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ACHIEVEMENTS -->
+<section class="section" id="achievements">
+  <div class="container">
+    <div class="section-label">Achievements</div>
+    <h2 class="section-title">主な実績</h2>
+    <div class="achievements-grid">
+      <div class="achievement-item">
+        <div class="ach-year">2024</div>
+        <div class="ach-event">九州吹奏楽コンクール</div>
+        <div class="ach-award silver">銀賞</div>
+      </div>
+      <div class="achievement-item">
+        <div class="ach-year">2025</div>
+        <div class="ach-event">福岡県吹奏楽コンクール</div>
+        <div class="ach-award silver">銀賞</div>
+      </div>
+      <div class="achievement-item">
+        <div class="ach-year">2025</div>
+        <div class="ach-event">サックスアンサンブルコンテスト支部大会</div>
+        <div class="ach-award gold">金賞</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- RECRUIT -->
+<section class="section" id="recruit">
+  <div class="container">
+    <div class="section-label">Join Us</div>
+    <h2 class="section-title">部員募集</h2>
+    <div class="recruit-card">
+      <h3 class="recruit-heading">一緒に音楽を楽しみませんか</h3>
+      <p class="recruit-text">
+        楽譜が読めなくても、リズムに自信がなくても大丈夫。音楽が好きな人も、ちょっと気になっているだけの人も、みんな大歓迎です。私たちと一緒に、充実した部活動の時間を過ごしましょう。
+      </p>
+      <span class="recruit-note">見学はいつでも歓迎しています</span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 福岡市立元岡中学校 吹奏楽部</p>
+</footer>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
