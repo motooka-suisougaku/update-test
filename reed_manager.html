@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>吹奏楽部 - リード在庫管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --accent: #d4af37;
+            --bg: #f8f6f1;
+            --card: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Georgia', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, #ede9e4 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* ===== ヘッダー ===== */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, #164e63 100%);
+            color: white;
+            padding: 32px 24px;
+            border-radius: 8px;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 30px rgba(30, 58, 138, 0.2);
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        header .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            font-weight: 300;
+        }
+
+        /* ===== タブナビゲーション ===== */
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-light);
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        /* ===== タブコンテンツ ===== */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== フォーム要素 ===== */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* ===== ボタン ===== */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--primary-light);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== グリッドレイアウト ===== */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .card h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-label {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .card-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+
+        .card-text {
+            font-size: 14px;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* ===== テーブル ===== */
+        .table-responsive {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead {
+            background: var(--primary);
+            color: white;
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr:hover {
+            background: var(--bg);
+        }
+
+        /* ===== 数量操作ボタン ===== */
+        .quantity-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+        }
+
+        .quantity-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary);
+            transition: all 0.2s ease;
+        }
+
+        .quantity-btn:hover {
+            background: var(--primary-light);
+            color: white;
+            border-color: var(--primary-light);
+        }
+
+        .quantity-input input {
+            width: 60px;
+            text-align: center;
+            padding: 8px;
+        }
+
+        /* ===== アラート ===== */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #7f1d1d;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #0c2340;
+            border: 1px solid #bfdbfe;
+        }
+
+        /* ===== ローディング ===== */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 20px;
+        }
+
+        /* ===== 統計サマリー ===== */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .summary-card .label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-card .value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        /* ===== レスポンシブ ===== */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 22px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tab-nav {
+                overflow-x: auto;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+
+        /* ===== 削除確認モーダル ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--card);
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal h2 {
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .modal p {
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* ===== ステータスバッジ ===== */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #7f1d1d;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        /* ===== ロール表示 ===== */
+        .role-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: var(--primary);
+            color: white;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        /* ===== エラー状態 ===== */
+        .error-message {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        /* ===== パスワード入力 ===== */
+        .password-container {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .password-container input {
+            flex: 1;
+            min-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ===== ヘッダー ===== -->
+        <header>
+            <h1>🎺 吹奏楽部 リード在庫管理</h1>
+            <p class="subtitle">部員全員で在庫をリアルタイム管理</p>
+        </header>
+
+        <!-- ===== ロール選択 & ログイン ===== -->
+        <div id="roleSelection" class="card" style="margin-bottom: 24px;">
+            <div class="form-group">
+                <label>アクセスモード</label>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" id="memberModeBtn">
+                        👥 部員として入力
+                    </button>
+                    <button class="btn btn-secondary" id="adminModeBtn">
+                        ⚙️ 管理者として管理
+                    </button>
+                </div>
+            </div>
+            <div id="adminPasswordPrompt" style="display: none;">
+                <div class="form-group">
+                    <label>管理者パスワード</label>
+                    <div class="password-container">
+                        <input type="password" id="adminPassword" placeholder="パスワードを入力">
+                        <button class="btn btn-primary btn-small" id="adminLoginBtn">ログイン</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== タブナビゲーション ===== -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="dashboard">📊 ダッシュボード</button>
+            <button class="tab-btn" id="tab-master-btn" data-tab="master" style="display:none;">🔧 マスタ管理</button>
+            <button class="tab-btn" id="tab-member-btn" data-tab="member">📝 在庫入力</button>
+            <button class="tab-btn" id="tab-summary-btn" data-tab="summary">📈 集計結果</button>
+        </div>
+
+        <!-- ===== ダッシュボード ===== -->
+        <div id="dashboard" class="tab-content active">
+            <div id="dashboardContent"></div>
+        </div>
+
+        <!-- ===== マスタ管理（管理者のみ） ===== -->
+        <div id="master" class="tab-content">
+            <div class="grid">
+                <div class="card">
+                    <h3>リード銘柄登録</h3>
+                    <div class="form-group">
+                        <label>楽器名</label>
+                        <select id="masterInstrument">
+                            <option value="">-- 選択 --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>リード銘柄</label>
+                        <input type="text" id="masterReedName" placeholder="例: Vandoren B40">
+                    </div>
+                    <div class="form-group">
+                        <label>1箱の入数（本）</label>
+                        <input type="number" id="masterBoxCount" placeholder="例: 10" min="1">
+                    </div>
+                    <button class="btn btn-primary" id="addReedBtn">登録</button>
+                </div>
+
+                <div class="card">
+                    <h3>楽器登録</h3>
+                    <div class="form-group">
+                        <label>楽器名</label>
+                        <input type="text" id="instrumentName" placeholder="例: ソプラノサックス">
+                    </div>
+                    <button class="btn btn-primary" id="addInstrumentBtn">登録</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>リード銘柄一覧</h3>
+                <div id="masterList" class="table-responsive"></div>
+            </div>
+
+            <div class="card">
+                <h3>管理者設定</h3>
+                <div class="form-group">
+                    <label>管理者パスワード</label>
+                    <input type="password" id="adminPasswordInput" placeholder="新しいパスワードを設定">
+                </div>
+                <button class="btn btn-primary" id="setAdminPasswordBtn">パスワードを更新</button>
+            </div>
+        </div>
+
+        <!-- ===== 部員入力 ===== -->
+        <div id="member" class="tab-content">
+            <div class="card">
+                <h3>📝 あなたのリード在庫を入力</h3>
+                <div class="form-group">
+                    <label>お名前</label>
+                    <select id="memberName">
+                        <option value="">-- 選択 --</option>
+                    </select>
+                </div>
+                <div id="memberStockInputs"></div>
+                <button class="btn btn-success" id="saveMemberStockBtn">保存</button>
+            </div>
+        </div>
+
+        <!-- ===== 集計結果 ===== -->
+        <div id="summary" class="tab-content">
+            <div id="summaryContent"></div>
+        </div>
+    </div>
+
+    <!-- ===== 削除確認モーダル ===== -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h2>削除確認</h2>
+            <p id="deleteMessage"></p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="cancelDeleteBtn">キャンセル</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">削除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Firebase SDK ===== -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+
+    <script>
+        // ========================================
+        // Firebase 設定
+        // ========================================
+        // 👇 以下をあなたのFirebase設定に置き換えてください
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Firebase初期化
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ========================================
+        // グローバル変数
+        // ========================================
+        let currentRole = null; // 'member' or 'admin'
+        let instrumentsData = [];
+        let reedsData = [];
+        let membersData = [];
+        let deleteTargetId = null;
+        let deleteType = null;
+
+        // ========================================
+        // UI イベントリスナー
+        // ========================================
+
+        // ロール選択ボタン
+        document.getElementById('memberModeBtn').addEventListener('click', () => {
+            currentRole = 'member';
+            document.getElementById('roleSelection').style.display = 'none';
+            document.getElementById('tab-master-btn').style.display = 'none';
+            document.getElementById('tab-member-btn').style.display = 'block';
+            document.getElementById('tab-summary-btn').style.display = 'block';
+            loadAllData();
+            showTab('dashboard');
+        });
+
+        document.getElementById('adminModeBtn').addEventListener('click', () => {
+            document.getElementById('adminPasswordPrompt').style.display = 'block';
+        });
+
+        document.getElementById('adminLoginBtn').addEventListener('click', () => {
+            verifyAdminPassword();
+        });
+
+        // タブ切り替え
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.getAttribute('data-tab');
+                showTab(tabName);
+            });
+        });
+
+        // ========================================
+        // タブ管理
+        // ========================================
+        function showTab(tabName) {
+            // すべてのタブを非表示
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // 指定タブを表示
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            // タブ固有の処理
+            if (tabName === 'dashboard') {
+                loadDashboard();
+            } else if (tabName === 'master') {
+                loadMasterData();
+            } else if (tabName === 'member') {
+                loadMemberForm();
+            } else if (tabName === 'summary') {
+                loadSummary();
+            }
+        }
+
+        // ========================================
+        // Firestore操作関数
+        // ========================================
+
+        async function loadAllData() {
+            try {
+                // 楽器を読み込む
+                const instrumentsSnapshot = await db.collection('instruments').get();
+                instrumentsData = instrumentsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // リードを読み込む
+                const reedsSnapshot = await db.collection('reeds_master').get();
+                reedsData = reedsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // 部員を読み込む
+                const membersSnapshot = await db.collection('members').get();
+                membersData = membersSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                console.log('データ読み込み完了', {
+                    instruments: instrumentsData,
+                    reeds: reedsData,
+                    members: membersData
+                });
+            } catch (error) {
+                console.error('データ読み込みエラー:', error);
+                showAlert('データの読み込みに失敗しました', 'error');
+            }
+        }
+
+        // ========================================
+        // 管理者認証
+        // ========================================
+        async function verifyAdminPassword() {
+            const password = document.getElementById('adminPassword').value;
+            if (!password) {
+                showAlert('パスワードを入力してください', 'error');
+                return;
+            }
+
+            try {
+                const configDoc = await db.collection('_config').doc('admin').get();
+                const storedPassword = configDoc.data()?.password;
+
+                if (storedPassword && storedPassword === password) {
+                    currentRole = 'admin';
+                    document.getElementById('roleSelection').style.display = 'none';
+                    document.getElementById('tab-master-btn').style.display = 'block';
+                    loadAllData();
+                    showTab('dashboard');
+                    showAlert('管理者モードでログインしました', 'success');
+                } else {
+                    showAlert('パスワードが正しくありません', 'error');
+                }
+            } catch (error) {
+                console.error('認証エラー:', error);
+                showAlert('認証に失敗しました', 'error');
+            }
+        }
+
+        // ========================================
+        // ダッシュボード
+        // ========================================
+        async function loadDashboard() {
+            const content = document.getElementById('dashboardContent');
+            content.innerHTML = '<div class="loading"><span class="spinner"></span> 読み込み中...</div>';
+
+            try {
+                await loadAllData();
+
+                let html = `
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <div class="label">登録済み楽器</div>
+                            <div class="value">${instrumentsData.length}</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="label">登録済みリード</div>
+                            <div class="value">${reedsData.length}</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="label">部員数</div>
+                            <div class="value">${membersData.length}</div>
+                        </div>
+                    </div>
+                `;
+
+                // 各楽器ごとのリード登録状況
+                if (reedsData.length > 0) {
+                    html += '<div class="card"><h3>📋 登録済みリード一覧</h3>';
+                    html += '<div class="table-responsive"><table><thead><tr><th>楽器</th><th>銘柄</th><th>1箱入数</th></tr></thead><tbody>';
+
+                    reedsData.forEach(reed => {
+                        const instrument = instrumentsData.find(i => i.id === reed.instrumentId);
+                        html += `
+                            <tr>
+                                <td>${instrument?.name || 'N/A'}</td>
+                                <td>${reed.name}</td>
+                                <td>${reed.boxCount}本</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table></div></div>';
+                }
+
+                content.innerHTML = html;
+            } catch (error) {
+                console.error('ダッシュボード読み込みエラー:', error);
+                content.innerHTML = '<div class="alert alert-error">データの読み込みに失敗しました</div>';
+            }
+        }
+
+        // ========================================
+        // マスタ管理
+        // ========================================
+        async function loadMasterData() {
+            try {
+                await loadAllData();
+
+                // 楽器選択肢を更新
+                const instrumentSelect = document.getElementById('masterInstrument');
+                instrumentSelect.innerHTML = '<option value="">-- 選択 --</option>';
+                instrumentsData.forEach(inst => {
+                    const option = document.createElement('option');
+                    option.value = inst.id;
+                    option.textContent = inst.name;
+                    instrumentSelect.appendChild(option);
+                });
+
+                // リード一覧を表示
+                renderMasterList();
+            } catch (error) {
+                console.error('マスタ読み込みエラー:', error);
+                showAlert('マスタ情報の読み込みに失敗しました', 'error');
+            }
+        }
+
+        function renderMasterList() {
+            const masterList = document.getElementById('masterList');
+            if (reedsData.length === 0) {
+                masterList.innerHTML = '<p style="color: var(--text-light); text-align: center; padding: 20px;">登録されているリード銘柄はありません</p>';
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>楽器</th>
+                            <th>リード銘柄</th>
+                            <th>1箱入数</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            reedsData.forEach(reed => {
+                const instrument = instrumentsData.find(i => i.id === reed.instrumentId);
+                html += `
+                    <tr>
+                        <td>${instrument?.name || 'N/A'}</td>
+                        <td>${reed.name}</td>
+                        <td>${reed.boxCount}本</td>
+                        <td>
+                            <button class="btn btn-danger btn-small" onclick="requestDeleteReed('${reed.id}')">削除</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            masterList.innerHTML = html;
+        }
+
+        document.getElementById('addInstrumentBtn').addEventListener('click', async () => {
+            const name = document.getElementById('instrumentName').value.trim();
+            if (!name) {
+                showAlert('楽器名を入力してください', 'error');
+                return;
+            }
+
+            try {
+                await db.collection('instruments').add({
+                    name: name,
+                    createdAt: new Date()
+                });
+                showAlert('楽器を登録しました', 'success');
+                document.getElementById('instrumentName').value = '';
+                loadMasterData();
+            } catch (error) {
+                console.error('楽器登録エラー:', error);
+                showAlert('楽器の登録に失敗しました', 'error');
+            }
+        });
+
+        document.getElementById('addReedBtn').addEventListener('click', async () => {
+            const instrumentId = document.getElementById('masterInstrument').value;
+            const reedName = document.getElementById('masterReedName').value.trim();
+            const boxCount = parseInt(document.getElementById('masterBoxCount').value);
+
+            if (!instrumentId || !reedName || !boxCount || boxCount < 1) {
+                showAlert('すべてのフィールドを正しく入力してください', 'error');
+                return;
+            }
+
+            try {
+                await db.collection('reeds_master').add({
+                    instrumentId: instrumentId,
+                    name: reedName,
+                    boxCount: boxCount,
+                    createdAt: new Date()
+                });
+                showAlert('リード銘柄を登録しました', 'success');
+                document.getElementById('masterReedName').value = '';
+                document.getElementById('masterBoxCount').value = '';
+                loadMasterData();
+            } catch (error) {
+                console.error('リード登録エラー:', error);
+                showAlert('リード銘柄の登録に失敗しました', 'error');
+            }
+        });
+
+        document.getElementById('setAdminPasswordBtn').addEventListener('click', async () => {
+            const newPassword = document.getElementById('adminPasswordInput').value.trim();
+            if (!newPassword) {
+                showAlert('パスワードを入力してください', 'error');
+                return;
+            }
+
+            try {
+                await db.collection('_config').doc('admin').set({
+                    password: newPassword
+                });
+                showAlert('パスワードを更新しました', 'success');
+                document.getElementById('adminPasswordInput').value = '';
+            } catch (error) {
+                console.error('パスワード更新エラー:', error);
+                showAlert('パスワードの更新に失敗しました', 'error');
+            }
+        });
+
+        // ========================================
+        // 部員入力フォーム
+        // ========================================
+        async function loadMemberForm() {
+            try {
+                await loadAllData();
+
+                // 部員名選択肢を更新
+                const memberSelect = document.getElementById('memberName');
+                memberSelect.innerHTML = '<option value="">-- 選択 --</option>';
+                membersData.forEach(member => {
+                    const option = document.createElement('option');
+                    option.value = member.id;
+                    option.textContent = member.name;
+                    memberSelect.appendChild(option);
+                });
+
+                memberSelect.addEventListener('change', loadMemberStockInputs);
+            } catch (error) {
+                console.error('部員フォーム読み込みエラー:', error);
+                showAlert('フォームの読み込みに失敗しました', 'error');
+            }
+        }
+
+        async function loadMemberStockInputs() {
+            const memberId = document.getElementById('memberName').value;
+            const inputsContainer = document.getElementById('memberStockInputs');
+
+            if (!memberId) {
+                inputsContainer.innerHTML = '';
+                return;
+            }
+
+            try {
+                // 該当部員の在庫データを読み込む
+                const stocksSnapshot = await db.collection('member_stocks')
+                    .where('memberId', '==', memberId)
+                    .get();
+
+                const existingStocks = {};
+                stocksSnapshot.docs.forEach(doc => {
+                    existingStocks[doc.data().reedId] = doc.data().quantity;
+                });
+
+                // 各リードの入力フォームを生成
+                let html = '';
+                const groupedByInstrument = {};
+
+                reedsData.forEach(reed => {
+                    const instrument = instrumentsData.find(i => i.id === reed.instrumentId);
+                    if (!groupedByInstrument[instrument.name]) {
+                        groupedByInstrument[instrument.name] = [];
+                    }
+                    groupedByInstrument[instrument.name].push(reed);
+                });
+
+                Object.entries(groupedByInstrument).forEach(([instrumentName, reeds]) => {
+                    html += `<fieldset style="border: 1px solid var(--border); padding: 16px; border-radius: 6px; margin-bottom: 16px;">
+                        <legend style="padding: 0 8px; font-weight: 600;">${instrumentName}</legend>`;
+
+                    reeds.forEach(reed => {
+                        const quantity = existingStocks[reed.id] || 0;
+                        html += `
+                            <div class="form-group">
+                                <label>${reed.name} (1箱: ${reed.boxCount}本)</label>
+                                <div class="quantity-input">
+                                    <button type="button" class="quantity-btn" onclick="decreaseQuantity('${reed.id}')">−</button>
+                                    <input type="number" class="reed-qty" data-reed-id="${reed.id}" value="${quantity}" min="0">
+                                    <button type="button" class="quantity-btn" onclick="increaseQuantity('${reed.id}')">+</button>
+                                    <span style="color: var(--text-light); font-size: 12px; margin-left: 8px;">本</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += '</fieldset>';
+                });
+
+                inputsContainer.innerHTML = html;
+            } catch (error) {
+                console.error('在庫入力フォーム読み込みエラー:', error);
+                showAlert('入力フォームの読み込みに失敗しました', 'error');
+            }
+        }
+
+        function increaseQuantity(reedId) {
+            const input = document.querySelector(`.reed-qty[data-reed-id="${reedId}"]`);
+            input.value = parseInt(input.value || 0) + 1;
+        }
+
+        function decreaseQuantity(reedId) {
+            const input = document.querySelector(`.reed-qty[data-reed-id="${reedId}"]`);
+            const current = parseInt(input.value || 0);
+            if (current > 0) {
+                input.value = current - 1;
+            }
+        }
+
+        document.getElementById('saveMemberStockBtn').addEventListener('click', async () => {
+            const memberId = document.getElementById('memberName').value;
+            if (!memberId) {
+                showAlert('部員を選択してください', 'error');
+                return;
+            }
+
+            try {
+                // 既存のデータをすべて削除
+                const existingDocs = await db.collection('member_stocks')
+                    .where('memberId', '==', memberId)
+                    .get();
+
+                const batch = db.batch();
+                existingDocs.docs.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                // 新しいデータを保存
+                document.querySelectorAll('.reed-qty').forEach(input => {
+                    const reedId = input.getAttribute('data-reed-id');
+                    const quantity = parseInt(input.value) || 0;
+
+                    if (quantity > 0) {
+                        const newDocRef = db.collection('member_stocks').doc();
+                        batch.set(newDocRef, {
+                            memberId: memberId,
+                            reedId: reedId,
+                            quantity: quantity,
+                            updatedAt: new Date()
+                        });
+                    }
+                });
+
+                await batch.commit();
+                showAlert('在庫情報を保存しました', 'success');
+            } catch (error) {
+                console.error('在庫保存エラー:', error);
+                showAlert('在庫情報の保存に失敗しました', 'error');
+            }
+        });
+
+        // ========================================
+        // 集計結果
+        // ========================================
+        async function loadSummary() {
+            const content = document.getElementById('summaryContent');
+            content.innerHTML = '<div class="loading"><span class="spinner"></span> 集計中...</div>';
+
+            try {
+                await loadAllData();
+
+                // 全部員の在庫データを取得
+                const stocksSnapshot = await db.collection('member_stocks').get();
+                const stocksByReed = {};
+
+                stocksSnapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    if (!stocksByReed[data.reedId]) {
+                        stocksByReed[data.reedId] = [];
+                    }
+                    stocksByReed[data.reedId].push(data.quantity);
+                });
+
+                // リードごとに集計
+                const summary = [];
+                reedsData.forEach(reed => {
+                    const quantities = stocksByReed[reed.id] || [];
+                    const totalNeeded = quantities.reduce((sum, q) => sum + q, 0);
+                    const boxesNeeded = Math.ceil(totalNeeded / reed.boxCount);
+
+                    summary.push({
+                        reedId: reed.id,
+                        instrument: instrumentsData.find(i => i.id === reed.instrumentId)?.name,
+                        name: reed.name,
+                        boxCount: reed.boxCount,
+                        totalNeeded: totalNeeded,
+                        boxesNeeded: boxesNeeded,
+                        contributors: quantities.length
+                    });
+                });
+
+                // HTML生成
+                let html = '';
+
+                if (summary.length === 0) {
+                    html = '<div class="alert alert-info">集計するデータがありません</div>';
+                } else {
+                    html = `
+                        <div class="summary-grid">
+                            <div class="summary-card">
+                                <div class="label">合計リード種類</div>
+                                <div class="value">${summary.length}</div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="label">購入予定箱数</div>
+                                <div class="value">${summary.reduce((sum, s) => sum + s.boxesNeeded, 0)}</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>🛒 購入予定リスト</h3>
+                            <div class="table-responsive">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>楽器</th>
+                                            <th>リード銘柄</th>
+                                            <th>1箱入数</th>
+                                            <th>入力者数</th>
+                                            <th>合計本数</th>
+                                            <th>購入箱数</th>
+                                            <th>ステータス</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                    `;
+
+                    summary.forEach(item => {
+                        const status = item.boxesNeeded >= 1 ? '<span class="badge badge-warning">購入予定</span>' : '<span class="badge badge-success">不要</span>';
+                        html += `
+                            <tr>
+                                <td>${item.instrument}</td>
+                                <td>${item.name}</td>
+                                <td>${item.boxCount}本</td>
+                                <td>${item.contributors}</td>
+                                <td>${item.totalNeeded}</td>
+                                <td><strong>${item.boxesNeeded}</strong></td>
+                                <td>${status}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table></div></div>';
+                }
+
+                content.innerHTML = html;
+            } catch (error) {
+                console.error('集計エラー:', error);
+                content.innerHTML = '<div class="alert alert-error">集計処理に失敗しました</div>';
+            }
+        }
+
+        // ========================================
+        // 削除処理
+        // ========================================
+        function requestDeleteReed(reedId) {
+            const reed = reedsData.find(r => r.id === reedId);
+            deleteTargetId = reedId;
+            deleteType = 'reed';
+            document.getElementById('deleteMessage').textContent = `「${reed.name}」を本当に削除しますか？`;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+            document.getElementById('deleteModal').classList.remove('show');
+        });
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            try {
+                if (deleteType === 'reed') {
+                    await db.collection('reeds_master').doc(deleteTargetId).delete();
+                    showAlert('リード銘柄を削除しました', 'success');
+                    loadMasterData();
+                }
+                document.getElementById('deleteModal').classList.remove('show');
+            } catch (error) {
+                console.error('削除エラー:', error);
+                showAlert('削除に失敗しました', 'error');
+            }
+        });
+
+        // ========================================
+        // ユーティリティ関数
+        // ========================================
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(alertDiv, container.firstChild);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 4000);
+        }
+
+        // ========================================
+        // 初期化処理
+        // ========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('アプリ初期化完了');
+            loadDashboard();
+        });
+    </script>
+</body>
+</html>
